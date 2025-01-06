@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Support Chat</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        margin: 0;
+        padding: 0;
+      }
+
+      h2 {
+        text-align: center;
+        margin-top: 20px;
+        color: #333;
+      }
+
+      #chat-container {
+        max-width: 600px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      #chat-log {
+        height: 300px;
+        overflow-y: auto;
+        background-color: #f9f9f9;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        margin-bottom: 15px;
+      }
+
+      #chat-log p {
+        padding: 8px;
+        background-color: #e1f5fe;
+        border-radius: 5px;
+        margin-bottom: 5px;
+        word-wrap: break-word;
+      }
+
+      #chat-message-input {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 10px;
+      }
+
+      #chat-message-submit {
+        width: 100%;
+        background-color: #3498db;
+        color: white;
+        padding: 10px;
+        border: none;
+        font-size: 16px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      #chat-message-submit:hover {
+        background-color: #2980b9;
+      }
+
+      footer {
+        text-align: center;
+        padding: 10px;
+        background-color: #333;
+        color: #fff;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Support Chat</h2>
+    <div id="chat-container">
+      <div id="chat-log">
+        <!-- عرض الرسائل القديمة من الـ context -->
+        {% for message in messages %}
+          <p>
+            <strong>{{ message.sender.username }}:</strong> {{ message.content }}
+          </p>
+        {% empty %}
+          <p>No messages yet.</p>
+        {% endfor %}
+      </div>
+      <input id="chat-message-input"
+             type="text"
+             placeholder="Type your message here..." />
+      <button id="chat-message-submit">Send</button>
+    </div>
+    <footer>
+      2024 Real-time Support Chat
+    </footer>
+    <script>
+      let chatSocket;
+      const chatId = "{{ chat.id }}"; // تأكد من تمرير معرف المحادثة من الـ View
+
+      // دالة لإعداد WebSocket
+      function setupWebSocket() {
+        chatSocket = new WebSocket(
+          'ws://' + window.location.host + '/ws/support/' + chatId + '/'
+        );
+
+        chatSocket.onmessage = function(e) {
+          const data = JSON.parse(e.data);
+          const chatLog = document.getElementById('chat-log');
+          chatLog.innerHTML += `<p><strong>${data.sender}:</strong> ${data.message}</p>`;
+          chatLog.scrollTop = chatLog.scrollHeight; // التمرير التلقائي لأسفل
+        };
+
+        chatSocket.onclose = function(e) {
+          console.error('WebSocket connection closed unexpectedly, attempting to reconnect...');
+          setTimeout(setupWebSocket, 1000); // محاولة إعادة الاتصال بعد ثانية واحدة
+        };
+      }
+
+      // استدعاء دالة إعداد WebSocket عند تحميل الصفحة
+      setupWebSocket();
+
+      function sendMessage() {
+        const messageInputDom = document.getElementById('chat-message-input');
+        const message = messageInputDom.value;
+
+        if (message.trim()) {
+          if (chatSocket.readyState === WebSocket.OPEN) {
+            chatSocket.send(JSON.stringify({
+              'message': message
+            }));
+            messageInputDom.value = ''; // مسح الحقل بعد الإرسال
+          } else {
+            console.error('WebSocket is not open. Unable to send message.');
+          }
+        }
+      }
+
+      // إرسال الرسالة عند النقر على زر "Send"
+      document.getElementById('chat-message-submit').onclick = function(e) {
+        sendMessage();
+      };
+
+      // إرسال الرسالة عند الضغط على مفتاح "Enter"
+      document.getElementById('chat-message-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          sendMessage();
+        }
+      });
+      // Scroll to the bottom of the chat log
+      function scrollToBottom() {
+        const chatLog = document.getElementById('chat-log');
+        chatLog.scrollTop = chatLog.scrollHeight;
+      }
+
+      // Scroll to the bottom when the page loads
+      window.onload = function() {
+        scrollToBottom();
+      };
+    </script>
+  </body>
+</html>

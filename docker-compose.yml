@@ -1,0 +1,72 @@
+version: "3"
+
+volumes:
+  ra3d_postgres_data: {}
+  ra3d_postgres_data_backups: {}
+  ra3d_django_media: {}
+  ra3d_redis_data: {}
+  smtp4dev_data: {}
+
+services:
+  django: &django
+    build:
+      context: .
+      dockerfile: ./compose/django/Dockerfile
+    image: ra3d_django
+    container_name: ra3d_django
+    depends_on:
+      - postgres
+      - smtp4dev
+      - redis
+    volumes:
+      - .:/app:z
+    env_file:
+      - ./.envs/.django
+      - ./.envs/.env
+      - ./.envs/.postgres
+    expose:
+      - 8000
+    ports:
+      - "8000:8000"
+    command: /start
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./compose/postgres/Dockerfile
+    image: ra3d_production_postgres
+    container_name: ra3d_postgres
+    volumes:
+      - ra3d_postgres_data:/var/lib/postgresql/data
+      - ra3d_postgres_data_backups:/backups
+    env_file:
+      - ./.envs/.postgres
+
+  smtp4dev:
+    image: rnwood/smtp4dev:v3
+    container_name: ra3d_smtp4dev
+    ports:
+      - "3000:80"
+      - "25:25"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - smtp4dev_data:/smtp4dev
+
+  redis:
+    image: "redis:alpine"
+    container_name: ra3d_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ra3d_redis_data:/data
+
+  celeryworker:
+    <<: *django
+    image: ra3d_celeryworker
+    container_name: ra3d_celeryworker
+    depends_on:
+      - redis
+      - postgres
+    ports: []
+    command: /start-celeryworker

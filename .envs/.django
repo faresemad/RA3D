@@ -1,0 +1,18 @@
+# General
+# ------------------------------------------------------------------------------
+USE_DOCKER=yes
+IPYTHONDIR=/app/.ipython
+MODE=DEVELOPMENT
+
+SECRET_KEY=1CwEyFo2MQfkeZ8Jbfax83QKxKKWXCEPPR39mJhfHkWfqZV3sY
+ALLOWED_HOSTS=127.0.0.1,0.0.0.0,localhost
+ADMIN_URL=admin/
+HOST=http://localhost
+
+# Redis
+# ------------------------------------------------------------------------------
+REDIS_URL=redis://redis:6379/0
+
+# Celery
+# ------------------------------------------------------------------------------
+CELERY_BROKER_URL=redis://redis:6379/0

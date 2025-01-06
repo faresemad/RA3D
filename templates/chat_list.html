@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat List</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        margin: 0;
+        padding: 0;
+      }
+
+      h2 {
+        text-align: center;
+        margin-top: 20px;
+        color: #333;
+      }
+
+      #chat-list {
+        list-style-type: none;
+        padding: 0;
+        max-width: 500px;
+        margin: 0 auto;
+      }
+
+      #chat-list li {
+        background-color: #fff;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        font-size: 18px;
+      }
+
+      #chat-list li a {
+        text-decoration: none;
+        color: #3498db;
+      }
+
+      #chat-list li a:hover {
+        color: #2980b9;
+      }
+
+      footer {
+        text-align: center;
+        padding: 10px;
+        background-color: #333;
+        color: #fff;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Available Chats</h2>
+    <ul id="chat-list">
+      {% for chat in chats %}
+        <li>
+          <a href="{{ chat.id }}/">Enter Chat {{ chat.id }}</a>
+        </li>
+      {% empty %}
+        <li>No chats available.</li>
+      {% endfor %}
+    </ul>
+    <footer>
+      2024 Real-time Chat Application
+    </footer>
+  </body>
+</html>

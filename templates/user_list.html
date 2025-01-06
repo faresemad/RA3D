@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User List</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        margin: 0;
+        padding: 0;
+      }
+
+      h2 {
+        text-align: center;
+        margin-top: 20px;
+        color: #333;
+      }
+
+      #user-list {
+        list-style-type: none;
+        padding: 0;
+        max-width: 500px;
+        margin: 0 auto;
+      }
+
+      #user-list li {
+        background-color: #fff;
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        font-size: 18px;
+      }
+
+      #user-list li a {
+        text-decoration: none;
+        color: #3498db;
+      }
+
+      #user-list li a:hover {
+        color: #2980b9;
+      }
+
+      footer {
+        text-align: center;
+        padding: 10px;
+        background-color: #333;
+        color: #fff;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Available Users</h2>
+    <ul id="user-list">
+      {% for user in users %}
+        <li>
+          <a href="{% url 'chat:start_chat' user.id %}">{{ user.username }}</a>
+        </li>
+      {% empty %}
+        <li>No users available.</li>
+      {% endfor %}
+    </ul>
+    <footer>
+      2024 Real-time Chat Application
+    </footer>
+  </body>
+</html>

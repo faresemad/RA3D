@@ -14,13 +14,6 @@ urlpatterns += [
     path(f"{settings.API_PREFIX}oauth/", include("apps.users.api.urls", namespace="users")),
 ]
 
-# API patterns for Third Party Apps
-urlpatterns += [
-    path(f"{settings.API_PREFIX}auth/", include("djoser.urls.jwt")),
-    path(f"{settings.API_PREFIX}auth/social/", include("djoser.social.urls")),
-    path(f"{settings.API_PREFIX}social-auth/", include("social_django.urls", namespace="social")),
-]
-
 # API patterns for Spectacular
 urlpatterns += [
     path(f"{settings.API_PREFIX}schema/", SpectacularAPIView.as_view(), name="api-schema"),

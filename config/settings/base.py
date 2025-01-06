@@ -24,13 +24,13 @@ THIRD_PARTY_APPS = [
     "drf_spectacular",
     "corsheaders",
     "djoser",
-    "social_django",
     "django_filters",
     "channels",
 ]
 
 LOCAL_APPS = [
     "apps.users",
+    "apps.tickets",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

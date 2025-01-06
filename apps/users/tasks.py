@@ -1,7 +1,7 @@
 import logging
 
 from celery import shared_task
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
 from django.template.loader import get_template
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ def send_email_notification(subject, template, from_email, to_email, user_name, 
         email_template = get_template(template).render({"user_name": user_name, "code": code})
 
         # Create and configure the email message
-        email = EmailMessage(subject=subject, body=email_template, from_email=from_email, to=to_email)
+        email = EmailMultiAlternatives(subject=subject, body=email_template, from_email=from_email, to=to_email)
         email.content_subtype = "html"
 
         # Send the email

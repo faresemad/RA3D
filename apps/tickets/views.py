@@ -1,6 +1,7 @@
 import logging
 
-from rest_framework import status, viewsets
+from django.db.models import Q
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
@@ -12,7 +13,9 @@ from apps.utils.permissions import IsOwnerOrAdmin, IsSupport
 logger = logging.getLogger(__name__)
 
 
-class TicketViewSet(viewsets.ModelViewSet):
+class TicketViewSet(
+    mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet
+):
     queryset = Ticket.objects.select_related("user").all()
     serializer_class = ListTicketSerializer
     permission_classes = [IsAuthenticated]
@@ -28,7 +31,7 @@ class TicketViewSet(viewsets.ModelViewSet):
         if self.action == "create":
             return [IsAuthenticated()]
         if self.action == "close":
-            return [IsAdminUser() | IsSupport()]
+            return [Q(IsAdminUser()) | Q(IsSupport())]
         if self.action == "destroy":
             return [IsOwnerOrAdmin()]
         return super().get_permissions()

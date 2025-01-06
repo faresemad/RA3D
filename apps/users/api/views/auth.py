@@ -64,7 +64,11 @@ class Login(mixins.CreateModelMixin, viewsets.GenericViewSet):
         if user is not None and not user.email_confirmed:
             logger.warning(f"Login attempt for unconfirmed email: {user.email}")
             return Response(
-                {"error": "Email not confirmed, please activate your account", "user_id": user.id, "email": user.email},
+                {
+                    "error": "Email not confirmed, please activate your account",
+                    "user_id": user.id,
+                    "email": user.email,
+                },
                 status=status.HTTP_401_UNAUTHORIZED,
             )
         logger.warning("Invalid login attempt")

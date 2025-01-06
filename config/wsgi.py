@@ -1,5 +1,5 @@
 """
-WSGI config for Buy-Station project.
+WSGI config for RA3D project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 

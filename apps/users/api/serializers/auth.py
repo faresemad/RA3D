@@ -47,4 +47,4 @@ class LogoutSerializer(serializers.Serializer):
 
 
 class ResendActivationCodeSerializer(serializers.Serializer):
-    user_id = serializers.UUIDField()
+    email = serializers.EmailField()

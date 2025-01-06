@@ -64,7 +64,7 @@ class Login(mixins.CreateModelMixin, viewsets.GenericViewSet):
         if user is not None and not user.email_confirmed:
             logger.warning(f"Login attempt for unconfirmed email: {user.email}")
             return Response(
-                {"error": "Email not confirmed, please activate your account", "user_id": user.id},
+                {"error": "Email not confirmed, please activate your account", "user_id": user.id, "email": user.email},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
         logger.warning("Invalid login attempt")
@@ -95,13 +95,13 @@ class AccountActivation(mixins.CreateModelMixin, viewsets.GenericViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         activation_code = serializer.validated_data["code"]
-        user_id = serializer.validated_data["user_id"]
-        email_confirmed = ActivationCode.objects.filter(activation_code=activation_code, user=user_id).first()
+        email = serializer.validated_data["email"]
+        email_confirmed = ActivationCode.objects.filter(activation_code=activation_code, user__email=email).first()
 
         if not email_confirmed or not email_confirmed.verify_activation_code(activation_code):
-            logger.warning(f"Invalid activation code for user {user_id}")
+            logger.warning(f"Invalid activation code for user {email}")
             return Response({"error": "Invalid activation code"}, status=status.HTTP_400_BAD_REQUEST)
-        logger.info(f"Account activated for user {user_id}")
+        logger.info(f"Account activated for user {email}")
         return Response({"success": "Account Activated"}, status=status.HTTP_200_OK)
 
 
@@ -115,10 +115,10 @@ class ResendActivationCode(mixins.CreateModelMixin, viewsets.GenericViewSet):
         logger.info("Attempting to resend activation code")
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user_id = serializer.validated_data["user_id"]
+        email = serializer.validated_data["email"]
 
         try:
-            user = get_user_model().objects.get(id=user_id)
+            user = get_user_model().objects.get(email=email)
             if user.email_confirmed:
                 logger.warning(f"Resend activation attempt for already confirmed account: {user.email}")
                 return Response({"error": "Account already activated"}, status=status.HTTP_400_BAD_REQUEST)
@@ -126,7 +126,7 @@ class ResendActivationCode(mixins.CreateModelMixin, viewsets.GenericViewSet):
             activation_code = ActivationCode.objects.get(user=user)
             activation_code.create_activation_code()
 
-            subject = "Your New Activation Code - [Buy-Station]"
+            subject = "Your New Activation Code - [RA3D]"
             from_email = "<my email>"
             to_email = [user.email]
             send_email_notification.delay(
@@ -137,10 +137,10 @@ class ResendActivationCode(mixins.CreateModelMixin, viewsets.GenericViewSet):
             return Response({"success": "New activation code sent to your email"}, status=status.HTTP_200_OK)
 
         except get_user_model().DoesNotExist:
-            logger.warning(f"Resend activation attempt for non-existent user: {user_id}")
+            logger.warning(f"Resend activation attempt for non-existent user: {email}")
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
         except ActivationCode.DoesNotExist:
-            logger.warning(f"No activation code found for user: {user_id}")
+            logger.warning(f"No activation code found for user: {email}")
             return Response({"error": "No activation code found"}, status=status.HTTP_404_NOT_FOUND)
 
 
@@ -162,7 +162,7 @@ class SignUp(mixins.CreateModelMixin, viewsets.GenericViewSet):
         """
         Sends an activation email to the user with the activation code.
         """
-        subject = "Your Activation Code - [Buy-Station]"
+        subject = "Your Activation Code - [RA3D]"
         from_email = "<my email>"
         to_email = [user.email]
         send_email_notification.delay(
@@ -187,6 +187,7 @@ class SignUp(mixins.CreateModelMixin, viewsets.GenericViewSet):
             {
                 "success": "Account created, check your email for activation code",
                 "user_id": user.id,
+                "email": user.email,
             },
             status=status.HTTP_201_CREATED,
         )
@@ -253,7 +254,7 @@ class PasswordReset(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
     def _send_reset_email(self, user):
         """Helper method to send reset email"""
-        subject = "Password Reset Code - Buy-Station"
+        subject = "Password Reset Code - RA3D"
         from_email = "<my email>"
         to_email = [user.email]
 
@@ -396,7 +397,7 @@ class EmailChange(mixins.CreateModelMixin, viewsets.GenericViewSet):
         user.new_email = new_email
         user.save(update_fields=["email_verification_code", "new_email"])
 
-        subject = "Email Change Verification - Buy-Station"
+        subject = "Email Change Verification - RA3D"
         from_email = "<my email>"
         to_email = [new_email]
 

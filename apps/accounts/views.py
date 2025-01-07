@@ -50,11 +50,13 @@ class AccountViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 
 class AccountCategoryViewSet(viewsets.ModelViewSet):
-    queryset = AccountCategory.objects.all()
+    queryset = AccountCategory.objects.all().order_by("-created_at")
     serializer_class = CategorySerializer
+    filter_backends = [SearchFilter]
+    search_fields = ["name", "description"]
 
     def get_permissions(self):
-        if self.action in ["list", "retrieve"]:
+        if self.action == "list":
             return [IsAuthenticated()]
         return [IsAdminUser()]
 

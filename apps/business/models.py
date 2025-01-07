@@ -24,7 +24,7 @@ class BusinessData(models.Model):
         upload_to="secret/business/data/",
         validators=[FileExtensionValidator(allowed_extensions=["txt", "pdf", "docx"])],
     )
-    account = models.OneToOneField("Business", on_delete=models.CASCADE, related_name="secret_data")
+    business = models.OneToOneField("Business", on_delete=models.CASCADE, related_name="secret_data")
 
     def __str__(self):
         return self.data.name

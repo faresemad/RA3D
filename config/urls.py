@@ -13,6 +13,7 @@ urlpatterns = [
 urlpatterns += [
     path(f"{settings.API_PREFIX}oauth/", include("apps.users.api.urls", namespace="users")),
     path(f"{settings.API_PREFIX}tickets/", include("apps.tickets.urls", namespace="tickets")),
+    path(f"{settings.API_PREFIX}accounts/", include("apps.accounts.urls", namespace="accounts")),
 ]
 
 # API patterns for Spectacular

@@ -1,9 +1,12 @@
 import logging
 
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
+from apps.accounts.filters import AccountFilter
 from apps.accounts.models import Account, AccountCategory, AccountData
 from apps.accounts.serializers import (
     AccountCategorySerializer,
@@ -34,6 +37,10 @@ class AccountViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filterset_class = AccountFilter
+    ordering_fields = ["created_at"]
+    search_fields = ["category", "price", "user", "location", "source", "is_sold", "created_at", "website_domain"]
 
 
 class AccountCategoryViewSet(viewsets.ModelViewSet):

@@ -15,6 +15,7 @@ urlpatterns += [
     path(f"{settings.API_PREFIX}tickets/", include("apps.tickets.urls", namespace="tickets")),
     path(f"{settings.API_PREFIX}accounts/", include("apps.accounts.urls", namespace="accounts")),
     path(f"{settings.API_PREFIX}business/", include("apps.business.urls", namespace="business")),
+    path(f"{settings.API_PREFIX}leads/", include("apps.leads.urls", namespace="leads")),
 ]
 
 # API patterns for Spectacular

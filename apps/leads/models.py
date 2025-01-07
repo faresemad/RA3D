@@ -39,9 +39,12 @@ class Leads(models.Model):
     niche = models.CharField(max_length=255)
     website_domain = models.CharField(max_length=255)
     provider = models.CharField(max_length=255)
-    password = models.CharField(max_length=255)
+    password = models.BooleanField(default=False)
     emails_number = models.IntegerField()
-    proof = models.FileField(upload_to="leads/proofs/")
+    proof = models.FileField(
+        upload_to="leads/proofs/",
+        validators=[FileExtensionValidator(allowed_extensions=["txt", "pdf", "docx"])],
+    )
     price = models.DecimalField(max_digits=10, decimal_places=2)
     is_sold = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)

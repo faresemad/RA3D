@@ -8,24 +8,14 @@ from rest_framework.response import Response
 
 from apps.accounts.filters import AccountFilter
 from apps.accounts.models import Account, AccountCategory, AccountData
-from apps.accounts.serializers import (
-    AccountCategorySerializer,
-    AccountDataSerializer,
-    AccountSerializer,
-    CreateAccountDataSerializer,
-)
+from apps.accounts.serializers import AccountSerializer, CategorySerializer, CreateAccountDataSerializer
 
 logger = logging.getLogger(__name__)
 
 
 class AccountDataViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     queryset = AccountData.objects.all()
-    serializer_class = AccountDataSerializer
-
-    def get_serializer_class(self):
-        if self.action == "create":
-            return CreateAccountDataSerializer
-        return AccountDataSerializer
+    serializer_class = CreateAccountDataSerializer
 
     def create(self, request, *args, **kwargs):
         super().create(request, *args, **kwargs)
@@ -34,7 +24,23 @@ class AccountDataViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
 
 class AccountViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
-    queryset = Account.objects.all()
+    queryset = (
+        Account.objects.select_related("user", "category")
+        .filter(is_sold=False)
+        .only(
+            "user__username",
+            "user__picture",
+            "category__name",
+            "website_domain",
+            "location",
+            "details",
+            "price",
+            "source",
+            "proof",
+            "created_at",
+            "is_sold",
+        )
+    )
     serializer_class = AccountSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
@@ -45,7 +51,7 @@ class AccountViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 class AccountCategoryViewSet(viewsets.ModelViewSet):
     queryset = AccountCategory.objects.all()
-    serializer_class = AccountCategorySerializer
+    serializer_class = CategorySerializer
 
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:

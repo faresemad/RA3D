@@ -1,0 +1,66 @@
+<!-- your_app_name/templates/your_app_name/notification_list.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Notifications</title>
+    <script>
+      // WebSocket connection
+      const token = "{{ request.COOKIES.access_token }}";
+      console.log(token);
+      const socket = new WebSocket(`ws://${window.location.host}/ws/notifications/?token=${token}`);
+
+      socket.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        // Append the new notification to the list
+        const notificationList = document.getElementById('notification-list');
+        const newNotification = document.createElement('li');
+        newNotification.textContent = `${data.message} (Received at ${data.created_at})`;
+        notificationList.prepend(newNotification);
+      };
+    </script>
+  </head>
+  <body>
+    <h1>Your Notifications</h1>
+    <ul id="notification-list">
+      {% for notification in notifications %}
+        <li>{{ notification.message }} (Received at {{ notification.created_at }})</li>
+      {% empty %}
+        <li>No notifications yet.</li>
+      {% endfor %}
+    </ul>
+    <h2>Create Notification</h2>
+    <form id="notification-form">
+      <input type="text"
+             name="message"
+             placeholder="Enter notification message"
+             required />
+      <button type="submit">Send Notification</button>
+    </form>
+    <script>
+      // Handle form submission for creating notifications
+      document.getElementById('notification-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const message = this.message.value;
+
+        fetch('/create-notification/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': '{{ csrf_token }}' // Use CSRF token for POST requests
+            },
+            body: JSON.stringify({
+              message
+            })
+          }).then(response => response.json())
+          .then(data => {
+            if (data.error) {
+              alert(data.error);
+            } else {
+              console.log(data.message); // Optional: handle successful creation
+            }
+          });
+      });
+    </script>
+  </body>
+</html>

@@ -26,7 +26,7 @@ class AccountCategory(models.TextChoices):
 
 
 class AccountType(models.TextChoices):
-    CREATES = "created", "Craeted"
+    CREATED = "created", "Craeted"
     HACKED = "hacked", "Hacked / Cracked"
 
 
@@ -39,12 +39,12 @@ class AccountStatus(models.TextChoices):
 class Account(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="accounts")
-    login_url = models.URLField()
+    domain = models.URLField()
     username = models.CharField(max_length=255)
     password = models.CharField(max_length=255)
     category = models.CharField(max_length=255, choices=AccountCategory.choices, default=AccountCategory.OTHER)
     country = models.CharField(max_length=255)
-    type = models.CharField(max_length=255, choices=AccountType.choices, default=AccountType.CREATES)
+    type = models.CharField(max_length=255, choices=AccountType.choices, default=AccountType.CREATED)
     details = models.TextField()
     notes = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -55,7 +55,7 @@ class Account(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.category} - {self.price}"
+        return f"{self.username} - {self.category} - {self.price}"
 
     class Meta:
         ordering = ["-created_at"]

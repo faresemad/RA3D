@@ -1,17 +1,17 @@
 from django_filters import rest_framework as filters
 
-from apps.business.models import Business
+from apps.webmails.models import WebMail
 
 
-class BusinessFilter(filters.FilterSet):
+class WebMailFilter(filters.FilterSet):
     class Meta:
-        model = Business
+        model = WebMail
         fields = {
-            "category__name": ["exact"],
+            "category": ["exact"],
             "price": ["exact", "gte", "lte"],
             "user__username": ["exact"],
-            "location": ["exact"],
             "source": ["exact"],
             "created_at": ["exact", "gte", "lte"],
-            "website_domain": ["exact"],
+            "niche": ["exact"],
+            "status": ["exact"],
         }

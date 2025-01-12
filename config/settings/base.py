@@ -32,7 +32,7 @@ LOCAL_APPS = [
     "apps.users",
     "apps.tickets",
     "apps.accounts",
-    "apps.business",
+    "apps.webmails",
     "apps.leads",
     "apps.notifications",
 ]

@@ -14,7 +14,7 @@ urlpatterns += [
     path(f"{settings.API_PREFIX}oauth/", include("apps.users.api.urls", namespace="users")),
     path(f"{settings.API_PREFIX}tickets/", include("apps.tickets.urls", namespace="tickets")),
     path(f"{settings.API_PREFIX}accounts/", include("apps.accounts.urls", namespace="accounts")),
-    path(f"{settings.API_PREFIX}business/", include("apps.business.urls", namespace="business")),
+    path(f"{settings.API_PREFIX}webmail/", include("apps.webmails.urls", namespace="webmail")),
     path(f"{settings.API_PREFIX}leads/", include("apps.leads.urls", namespace="leads")),
     path(f"{settings.API_PREFIX}notifications/", include("apps.notifications.urls", namespace="notifications")),
 ]

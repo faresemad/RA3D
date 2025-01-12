@@ -6,7 +6,6 @@ from apps.webmails.models import WebMail, WebMailStatus
 @admin.register(WebMail)
 class WebMailAdmin(admin.ModelAdmin):
     list_display = [
-        "id",
         "user",
         "username",
         "category",
@@ -14,9 +13,7 @@ class WebMailAdmin(admin.ModelAdmin):
         "price",
         "source",
         "status",
-        "is_sold",
         "created_at",
-        "updated_at",
     ]
     search_fields = [
         "id",

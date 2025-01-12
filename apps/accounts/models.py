@@ -1,53 +1,61 @@
 import uuid
 
 from django.contrib.auth import get_user_model
-from django.core.validators import FileExtensionValidator
+from django.core.validators import URLValidator
 from django.db import models
 
 User = get_user_model()
 
 
-class AccountCategory(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+class AccountCategory(models.TextChoices):
+    EMAIL_MARKETING = "email_marketing", "Email Marketing"
+    WEBMAIL_BUSINESS = "webmail_business", "Webmail Business"
+    MARKETING_TOOLS = "marketing_tools", "Marketing Tools"
+    HOSTING_DOMAIN = "hosting_domain", "Hosting Domain"
+    GAMES = "games", "Games"
+    GRAPHIC_DEVELOPER = "graphic_developer", "Graphic Developer"
+    VPN_SOCKS_PROXY = "vpn_socks_proxy", "VPN Socks Proxy"
+    SHOPPING = "shopping", "Shopping"
+    PROGRAM = "program", "Program"
+    STREAM = "stream", "Stream"
+    DATING = "dating", "Dating"
+    LEARNING = "learning", "Learning"
+    TORENT = "torent", "Torent"
+    VOIP = "voip", "VOIP"
+    OTHER = "other", "Other"
 
-    def __str__(self):
-        return self.name
+
+class AccountType(models.TextChoices):
+    CREATES = "created", "Craeted"
+    HACKED = "hacked", "Hacked / Cracked"
 
 
-class AccountData(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    data = models.FileField(
-        upload_to="secret/account/data/",
-        validators=[FileExtensionValidator(allowed_extensions=["txt", "pdf", "docx"])],
-    )
-    account = models.OneToOneField("Account", on_delete=models.CASCADE, related_name="secret_data")
-
-    def __str__(self):
-        return self.data.name
+class AccountStatus(models.TextChoices):
+    SOLD = "sold", "Sold"
+    UNSOLD = "unsold", "Un Sold"
+    DELETED = "deleted", "Deleted"
 
 
 class Account(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    category = models.ForeignKey(AccountCategory, on_delete=models.CASCADE, related_name="accounts")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="accounts")
-    website_domain = models.CharField(max_length=255)
-    location = models.CharField(max_length=255)
+    login_url = models.URLField()
+    username = models.CharField(max_length=255)
+    password = models.CharField(max_length=255)
+    category = models.CharField(max_length=255, choices=AccountCategory.choices, default=AccountCategory.OTHER)
+    country = models.CharField(max_length=255)
+    type = models.CharField(max_length=255, choices=AccountType.choices, default=AccountType.CREATES)
     details = models.TextField()
+    notes = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    source = models.CharField(max_length=255)
-    proof = models.FileField(
-        upload_to="proofs/", validators=[FileExtensionValidator(allowed_extensions=["txt", "pdf", "docx"])]
-    )
+    proof = models.URLField(validators=[URLValidator(regex=r"^https?:\/\/((?:vgy\.me|prnt\.sc|gyazo\.com)\/.*)")])
+    status = models.CharField(max_length=255, choices=AccountStatus.choices, default=AccountStatus.UNSOLD)
     is_sold = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.website_domain
+        return f"{self.user.username} - {self.category} - {self.price}"
 
     class Meta:
         ordering = ["-created_at"]
@@ -56,5 +64,6 @@ class Account(models.Model):
         ]
 
     def mark_as_sold(self):
+        self.status = AccountStatus.SOLD
         self.is_sold = True
         self.save()

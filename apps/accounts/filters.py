@@ -7,11 +7,8 @@ class AccountFilter(filters.FilterSet):
     class Meta:
         model = Account
         fields = {
-            "category__name": ["exact"],
+            "category": ["exact"],
             "price": ["exact", "gte", "lte"],
             "user__username": ["exact"],
-            "location": ["exact"],
-            "source": ["exact"],
             "created_at": ["exact", "gte", "lte"],
-            "website_domain": ["exact"],
         }

@@ -1,4 +1,5 @@
 import uuid
+from urllib.parse import urlparse
 
 from django.contrib.auth import get_user_model
 from django.db import models, transaction
@@ -25,6 +26,9 @@ class Shell(models.Model):
     shell_type = models.CharField(max_length=20, choices=ShellType.choices, default=ShellType.CREATED)
     status = models.CharField(max_length=20, choices=ShellStatus.choices, default=ShellStatus.UNSOLD)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    ssl = models.BooleanField(default=False)
+    tld = models.CharField(max_length=10, default="com")
+    details = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
@@ -40,6 +44,13 @@ class Shell(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s shell - {self.shell_url}"
+
+    def save(self, *args, **kwargs):
+        if self.shell_url:
+            parsed_url = urlparse(self.shell_url)
+            self.tld = parsed_url.netloc.split(".")[-1]
+            self.ssl = parsed_url.scheme == "https"
+        super().save(*args, **kwargs)
 
     @transaction.atomic
     def mark_as_delete(self):

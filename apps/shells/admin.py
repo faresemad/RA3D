@@ -9,7 +9,7 @@ class ShellAdmin(admin.ModelAdmin):
     list_display = ("user", "shell_url", "shell_type", "status", "price", "is_deleted")
     list_filter = ("shell_type", "status", "is_deleted", "created_at", "updated_at")
     search_fields = ("shell_url", "user__username")
-    readonly_fields = ("created_at", "updated_at", "deleted_at", "is_deleted")
+    readonly_fields = ("status", "created_at", "updated_at", "deleted_at", "is_deleted")
     actions = ["mark_as_sold", "mark_as_unsold", "mark_as_delete"]
 
     @admin.action(description="Mark selected shells as sold")

@@ -26,6 +26,11 @@ def fetch_shell_details(shell_id):
         ip_info_response = requests.get(f"https://ipinfo.io/{ip_address}/json")
         ip_info = ip_info_response.json()
 
+        # Remove unwanted fields from IP info
+        ip_info.pop("ip", None)
+        ip_info.pop("readme", None)
+        ip_info.pop("hostname", None)
+
         # Fetch HTTP headers to infer machine type
         headers_response = requests.head(f"http://{url}", timeout=10)
         headers = headers_response.headers
@@ -44,7 +49,6 @@ def fetch_shell_details(shell_id):
 
         # Update the details field of the shell
         shell.details = {
-            "IP Address": ip_address,
             "IP Info": ip_info,
             "Server Header": server_header,
             "Inferred OS": os_type,

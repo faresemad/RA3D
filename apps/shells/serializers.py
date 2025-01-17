@@ -12,7 +12,6 @@ class ShellSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "user",
-            "shell_url",
             "shell_type",
             "status",
             "price",

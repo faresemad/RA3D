@@ -8,6 +8,7 @@ class ShellFilter(filters.FilterSet):
         model = Shell
         fields = {
             "shell_type": ["exact"],
+            "tld": ["exact"],
             "price": ["exact", "gte", "lte"],
             "user__username": ["exact"],
             "created_at": ["exact", "gte", "lte"],

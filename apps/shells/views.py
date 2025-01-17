@@ -22,7 +22,6 @@ class ShellViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.Gene
         .only(
             "user__username",
             "user__picture",
-            "shell_url",
             "shell_type",
             "status",
             "price",
@@ -37,7 +36,7 @@ class ShellViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.Gene
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_class = ShellFilter
     ordering_fields = ["created_at"]
-    search_fields = ["shell_url", "tld", "user__username"]
+    search_fields = ["tld", "user__username"]
 
     def get_permissions(self):
         if self.action in ["list", "retrieve"]:

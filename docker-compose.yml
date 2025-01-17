@@ -17,7 +17,7 @@ services:
     depends_on:
       - postgres
       # - smtp4dev
-      # - redis
+      - redis
     volumes:
       - .:/app:z
     env_file:
@@ -53,20 +53,20 @@ services:
   #   volumes:
   #     - smtp4dev_data:/smtp4dev
 
-  # redis:
-  #   image: "redis:alpine"
-  #   container_name: ra3d_redis
-  #   ports:
-  #     - "6379:6379"
-  #   volumes:
-  #     - ra3d_redis_data:/data
+  redis:
+    image: "redis:alpine"
+    container_name: ra3d_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ra3d_redis_data:/data
 
-  # celeryworker:
-  #   <<: *django
-  #   image: ra3d_celeryworker
-  #   container_name: ra3d_celeryworker
-  #   depends_on:
-  #     - redis
-  #     - postgres
-  #   ports: []
-  #   command: /start-celeryworker
+  celeryworker:
+    <<: *django
+    image: ra3d_celeryworker
+    container_name: ra3d_celeryworker
+    depends_on:
+      - redis
+      - postgres
+    ports: []
+    command: /start-celeryworker

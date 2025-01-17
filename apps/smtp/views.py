@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.smtp.filters import SmtpFilter
-from apps.smtp.models import SMTP
+from apps.smtp.models import SMTP, SmtpStatus
 from apps.smtp.serializers import CreateSmtpSerializer, SmtpSerializer
 from apps.utils.permissions import IsSeller
 
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class SmtpViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
     queryset = (
         SMTP.objects.select_related("user")
-        .filter(is_sold=False)
+        .filter(status=SmtpStatus.UNSOLD)
         .only(
             "user__username",
             "user__picture",

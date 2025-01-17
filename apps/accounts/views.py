@@ -14,7 +14,7 @@ from apps.utils.permissions import IsSeller
 logger = logging.getLogger(__name__)
 
 
-class AccountViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+class AccountViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
     queryset = (
         Account.objects.select_related("user")
         .filter(is_sold=False)

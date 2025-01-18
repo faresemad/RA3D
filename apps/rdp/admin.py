@@ -9,7 +9,7 @@ class RdpAdmin(admin.ModelAdmin):
     list_display = ("user", "ip", "username", "price", "status", "created_at", "updated_at")
     list_filter = ("status", "windows_type", "rdp_type", "created_at")
     search_fields = ("user__username", "ip", "username")
-    readonly_fields = ("created_at", "updated_at", "deleted_at")
+    readonly_fields = ("status", "is_deleted", "details", "created_at", "updated_at", "deleted_at")
     actions = ["mark_as_sold", "mark_as_unsold", "mark_as_delete"]
 
     @admin.action(description="Mark selected RDPs as Sold")

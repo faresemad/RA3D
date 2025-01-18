@@ -67,21 +67,21 @@ class RdpViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.Generi
             status=status.HTTP_201_CREATED,
         )
 
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=["get"])
     def mark_as_sold(self, request, pk=None):
         rdp: Rdp = self.get_object()
         rdp.mark_as_sold()
         logger.info(f"RDP marked as sold by {request.user.username}")
         return Response({"status": "success", "message": "RDP marked as sold"})
 
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=["get"])
     def mark_as_unsold(self, request, pk=None):
         rdp: Rdp = self.get_object()
         rdp.mark_as_unsold()
         logger.info(f"RDP marked as unsold by {request.user.username}")
         return Response({"status": "success", "message": "RDP marked as unsold"})
 
-    @action(detail=True, methods=["post"])
+    @action(detail=True, methods=["get"])
     def mark_as_delete(self, request, pk=None):
         rdp: Rdp = self.get_object()
         rdp.mark_as_delete()

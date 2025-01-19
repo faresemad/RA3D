@@ -2,6 +2,7 @@ import logging
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -67,6 +68,27 @@ class SellerAccountViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, views
             },
             status=status.HTTP_201_CREATED,
         )
+
+    @action(detail=True, methods=["post"])
+    def mark_as_sold(self, request, pk=None):
+        account = self.get_object()
+        account.mark_as_sold()
+        logger.info(f"Account {pk} marked as sold by {request.user.username}")
+        return Response({"status": "success", "message": "Account marked as sold"})
+
+    @action(detail=True, methods=["post"])
+    def mark_as_unsold(self, request, pk=None):
+        account = self.get_object()
+        account.mark_as_unsold()
+        logger.info(f"Account {pk} marked as unsold by {request.user.username}")
+        return Response({"status": "success", "message": "Account marked as unsold"})
+
+    @action(detail=True, methods=["post"])
+    def mark_as_deleted(self, request, pk=None):
+        account = self.get_object()
+        account.mark_as_deleted()
+        logger.info(f"Account {pk} marked as deleted by {request.user.username}")
+        return Response({"status": "success", "message": "Account marked as deleted"})
 
 
 class AccountViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):

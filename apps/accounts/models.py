@@ -67,3 +67,12 @@ class Account(models.Model):
         self.status = AccountStatus.SOLD
         self.is_sold = True
         self.save()
+
+    def mark_as_unsold(self):
+        self.status = AccountStatus.UNSOLD
+        self.is_sold = False
+        self.save()
+
+    def mark_as_deleted(self):
+        self.status = AccountStatus.DELETED
+        self.save()

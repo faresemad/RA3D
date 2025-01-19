@@ -6,10 +6,10 @@ from apps.cpanel.models import CPanel, CPanelStatus
 
 @admin.register(CPanel)
 class CPanelAdmin(admin.ModelAdmin):
-    list_display = ("user", "ip", "username", "price", "status", "created_at", "updated_at")
+    list_display = ("user", "host", "username", "price", "status", "created_at", "updated_at")
     list_filter = ("status", "is_deleted", "cpanel_type", "created_at")
-    search_fields = ("user__username", "ip", "username")
-    readonly_fields = ("status", "is_deleted", "details", "created_at", "updated_at", "deleted_at")
+    search_fields = ("user__username", "host", "username")
+    readonly_fields = ("status", "is_deleted", "details", "ssl", "tld", "created_at", "updated_at", "deleted_at")
     actions = ["mark_as_sold", "mark_as_unsold", "mark_as_delete"]
 
     @admin.action(description="Mark selected RDPs as Sold")

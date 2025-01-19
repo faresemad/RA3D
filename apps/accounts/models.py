@@ -1,7 +1,7 @@
 import uuid
 
 from django.contrib.auth import get_user_model
-from django.core.validators import URLValidator
+from django.core.validators import MinValueValidator, URLValidator
 from django.db import models
 
 User = get_user_model()
@@ -47,7 +47,7 @@ class Account(models.Model):
     type = models.CharField(max_length=255, choices=AccountType.choices, default=AccountType.CREATED)
     details = models.TextField()
     notes = models.TextField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(1)])
     proof = models.URLField(validators=[URLValidator(regex=r"^https?:\/\/((?:vgy\.me|prnt\.sc|gyazo\.com)\/.*)")])
     status = models.CharField(max_length=255, choices=AccountStatus.choices, default=AccountStatus.UNSOLD)
     is_sold = models.BooleanField(default=False)

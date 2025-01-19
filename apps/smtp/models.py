@@ -1,6 +1,7 @@
 import uuid
 
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
 from django.db import models, transaction
 
 User = get_user_model()
@@ -26,7 +27,7 @@ class SMTP(models.Model):
     password = models.CharField(max_length=255)
     smtp_type = models.CharField(max_length=255, choices=SMTPType.choices, default=SMTPType.CREATED)
     status = models.CharField(max_length=255, choices=SmtpStatus.choices, default=SmtpStatus.UNSOLD)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(1)])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)

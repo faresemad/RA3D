@@ -2,6 +2,7 @@ import uuid
 from urllib.parse import urlparse
 
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
 from django.db import models, transaction
 from django.utils import timezone
 
@@ -25,7 +26,7 @@ class CPanel(models.Model):
     host = models.CharField(max_length=255, default="127.0.0.1")
     username = models.CharField(max_length=255)
     password = models.CharField(max_length=255)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(1)])
     cpanel_type = models.CharField(max_length=255, choices=CPanelType.choices, default=CPanelType.CREATED)
     status = models.CharField(max_length=255, choices=CPanelStatus.choices, default=CPanelStatus.UNSOLD)
     ssl = models.BooleanField(default=False)

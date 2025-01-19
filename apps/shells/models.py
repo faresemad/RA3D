@@ -2,6 +2,7 @@ import uuid
 from urllib.parse import urlparse
 
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
 from django.db import models, transaction
 from django.utils import timezone
 
@@ -25,7 +26,7 @@ class Shell(models.Model):
     shell_url = models.URLField(max_length=355)
     shell_type = models.CharField(max_length=20, choices=ShellType.choices, default=ShellType.CREATED)
     status = models.CharField(max_length=20, choices=ShellStatus.choices, default=ShellStatus.UNSOLD)
-    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, validators=[MinValueValidator(1)])
     ssl = models.BooleanField(default=False)
     tld = models.CharField(max_length=10, null=True, blank=True)
     details = models.JSONField(null=True, blank=True)

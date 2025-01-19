@@ -1,6 +1,7 @@
 import uuid
 
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
 from django.db import models
 
 User = get_user_model()
@@ -53,7 +54,7 @@ class WebMail(models.Model):
     username = models.CharField(max_length=255)
     password = models.CharField(max_length=255)
     domain = models.URLField(max_length=255)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(1)])
     source = models.CharField(max_length=255, choices=WebMailType.choices, default=WebMailType.CREATED)
     category = models.CharField(max_length=255, choices=WebMailCategory.choices, default=WebMailCategory.CPANEL)
     niche = models.CharField(max_length=255, choices=WebMailNiche.choices, default=WebMailNiche.OTHER)

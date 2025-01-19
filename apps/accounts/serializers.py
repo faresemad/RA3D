@@ -4,7 +4,7 @@ from apps.accounts.models import Account
 from apps.users.api.serializers.profile import UserProfileSerializer
 
 
-class AccountSerializer(serializers.ModelSerializer):
+class BuyerAccountSerializer(serializers.ModelSerializer):
     user = UserProfileSerializer()
 
     class Meta:
@@ -12,6 +12,29 @@ class AccountSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "user",
+            "category",
+            "country",
+            "type",
+            "details",
+            "price",
+            "proof",
+            "status",
+            "is_sold",
+            "created_at",
+        ]
+
+
+class OwnerAccountSerializer(serializers.ModelSerializer):
+    user = UserProfileSerializer()
+
+    class Meta:
+        model = Account
+        fields = [
+            "id",
+            "user",
+            "domain",
+            "username",
+            "password",
             "category",
             "country",
             "type",

@@ -18,6 +18,7 @@ urlpatterns += [
     path(f"{settings.API_PREFIX}smtp/", include("apps.smtp.urls", namespace="smtp")),
     path(f"{settings.API_PREFIX}shells/", include("apps.shells.urls", namespace="shells")),
     path(f"{settings.API_PREFIX}rdp/", include("apps.rdp.urls", namespace="rdp")),
+    path(f"{settings.API_PREFIX}cpanel/", include("apps.cpanel.urls", namespace="cpanel")),
     path(f"{settings.API_PREFIX}leads/", include("apps.leads.urls", namespace="leads")),
     path(f"{settings.API_PREFIX}notifications/", include("apps.notifications.urls", namespace="notifications")),
 ]

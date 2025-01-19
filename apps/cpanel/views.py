@@ -22,7 +22,6 @@ class CPanelViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.Gen
         .only(
             "user__username",
             "user__picture",
-            "host",
             "username",
             "price",
             "ssl",

@@ -9,41 +9,44 @@ from rest_framework.response import Response
 
 from apps.cpanel.filters import CPanelFilter
 from apps.cpanel.models import CPanel, CPanelStatus
-from apps.cpanel.serializers import CPanelSerializer, CreateCPanelSerializer
+from apps.cpanel.serializers import CreateCPanelSerializer, OwnerCPanelSerializer, UserCPanelSerializer
 from apps.utils.permissions import IsOwner, IsSeller
 
 logger = logging.getLogger(__name__)
 
 
-class CPanelViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
-    queryset = (
-        CPanel.objects.select_related("user")
-        .filter(status=CPanelStatus.UNSOLD)
-        .only(
-            "user__username",
-            "user__picture",
-            "username",
-            "price",
-            "ssl",
-            "tld",
-            "cpanel_type",
-            "status",
-            "details",
-            "created_at",
-        )
-    )
-    serializer_class = CPanelSerializer
-    permission_classes = [IsSeller]
+class SellerCPanelViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
+    serializer_class = OwnerCPanelSerializer
+    permission_classes = [IsOwner]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_class = CPanelFilter
     ordering_fields = ["created_at"]
     search_fields = ["tld", "user__username"]
 
+    def get_queryset(self):
+        queryset = (
+            CPanel.objects.select_related("user")
+            .filter(user=self.request.user)
+            .only(
+                "user__username",
+                "user__picture",
+                "host",
+                "username",
+                "password",
+                "price",
+                "cpanel_type",
+                "status",
+                "ssl",
+                "tld",
+                "details",
+                "created_at",
+            )
+        )
+        return queryset
+
     def get_permissions(self):
-        if self.action in ["list", "retrieve"]:
-            return [IsAuthenticated()]
-        elif self.action in ["mark_as_sold", "mark_as_unsold", "mark_as_delete"]:
-            return [IsOwner()]
+        if self.action == "create":
+            self.permission_classes = [IsSeller]
         return super().get_permissions()
 
     def get_serializer_class(self):
@@ -64,23 +67,48 @@ class CPanelViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.Gen
             status=status.HTTP_201_CREATED,
         )
 
-    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
+    @action(detail=True, methods=["post"])
     def mark_as_sold(self, request, pk=None):
         cpanel = self.get_object()
         cpanel.mark_as_sold()
         logger.info(f"CPanel marked as sold by {request.user.username}")
         return Response({"status": "success", "message": "CPanel marked as sold"})
 
-    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
+    @action(detail=True, methods=["post"])
     def mark_as_unsold(self, request, pk=None):
         cpanel = self.get_object()
         cpanel.mark_as_unsold()
         logger.info(f"CPanel marked as unsold by {request.user.username}")
         return Response({"status": "success", "message": "CPanel marked as unsold"})
 
-    @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
+    @action(detail=True, methods=["post"])
     def mark_as_delete(self, request, pk=None):
         cpanel = self.get_object()
         cpanel.mark_as_delete()
         logger.info(f"CPanel marked as deleted by {request.user.username}")
         return Response({"status": "success", "message": "CPanel marked as deleted"})
+
+
+class CPanelViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = (
+        CPanel.objects.select_related("user")
+        .filter(status=CPanelStatus.UNSOLD)
+        .only(
+            "user__username",
+            "user__picture",
+            "username",
+            "price",
+            "ssl",
+            "tld",
+            "cpanel_type",
+            "status",
+            "details",
+            "created_at",
+        )
+    )
+    serializer_class = UserCPanelSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filterset_class = CPanelFilter
+    ordering_fields = ["created_at"]
+    search_fields = ["tld", "user__username"]

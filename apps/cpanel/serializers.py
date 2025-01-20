@@ -4,7 +4,7 @@ from apps.cpanel.models import CPanel
 from apps.users.api.serializers.profile import UserProfileSerializer
 
 
-class CPanelSerializer(serializers.ModelSerializer):
+class UserCPanelSerializer(serializers.ModelSerializer):
     user = UserProfileSerializer(read_only=True)
     username = serializers.SerializerMethodField()
 
@@ -25,6 +25,27 @@ class CPanelSerializer(serializers.ModelSerializer):
 
     def get_username(self, obj: CPanel):
         return f"{obj.username[:2]}***"
+
+
+class OwnerCPanelSerializer(serializers.ModelSerializer):
+    user = UserProfileSerializer(read_only=True)
+
+    class Meta:
+        model = CPanel
+        fields = [
+            "id",
+            "user",
+            "host",
+            "username",
+            "password",
+            "price",
+            "cpanel_type",
+            "status",
+            "ssl",
+            "tld",
+            "details",
+            "created_at",
+        ]
 
 
 class CreateCPanelSerializer(serializers.ModelSerializer):

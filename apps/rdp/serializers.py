@@ -21,8 +21,6 @@ class RdpSerializer(serializers.ModelSerializer):
             "access_type",
             "details",
             "created_at",
-            "updated_at",
-            "deleted_at",
             "is_deleted",
         ]
 

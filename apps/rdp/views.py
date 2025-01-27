@@ -37,8 +37,6 @@ class SellerRdpViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.
             "access_type",
             "details",
             "created_at",
-            "updated_at",
-            "deleted_at",
             "is_deleted",
         )
         return queryset

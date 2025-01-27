@@ -24,23 +24,17 @@ class SellerCPanelViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewse
     search_fields = ["tld", "user__username"]
 
     def get_queryset(self):
-        queryset = (
-            CPanel.objects.select_related("user")
-            .filter(user=self.request.user)
-            .only(
-                "user__username",
-                "user__picture",
-                "host",
-                "username",
-                "password",
-                "price",
-                "cpanel_type",
-                "status",
-                "ssl",
-                "tld",
-                "details",
-                "created_at",
-            )
+        queryset = CPanel.objects.filter(user=self.request.user).only(
+            "host",
+            "username",
+            "password",
+            "price",
+            "cpanel_type",
+            "status",
+            "ssl",
+            "tld",
+            "details",
+            "created_at",
         )
         return queryset
 

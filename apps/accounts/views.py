@@ -24,25 +24,19 @@ class SellerAccountViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, views
     search_fields = ["category", "details", "user__username"]
 
     def get_queryset(self):
-        queryset = (
-            Account.objects.select_related("user")
-            .filter(user=self.request.user)
-            .only(
-                "user__username",
-                "user__picture",
-                "domain",
-                "username",
-                "password",
-                "category",
-                "country",
-                "type",
-                "details",
-                "price",
-                "proof",
-                "status",
-                "is_sold",
-                "created_at",
-            )
+        queryset = Account.objects.filter(user=self.request.user).only(
+            "domain",
+            "username",
+            "password",
+            "category",
+            "country",
+            "type",
+            "details",
+            "price",
+            "proof",
+            "status",
+            "is_sold",
+            "created_at",
         )
         return queryset
 

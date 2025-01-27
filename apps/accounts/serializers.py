@@ -25,13 +25,10 @@ class BuyerAccountSerializer(serializers.ModelSerializer):
 
 
 class OwnerAccountSerializer(serializers.ModelSerializer):
-    user = UserProfileSerializer()
-
     class Meta:
         model = Account
         fields = [
             "id",
-            "user",
             "domain",
             "username",
             "password",

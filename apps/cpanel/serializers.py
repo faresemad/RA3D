@@ -28,13 +28,10 @@ class UserCPanelSerializer(serializers.ModelSerializer):
 
 
 class OwnerCPanelSerializer(serializers.ModelSerializer):
-    user = UserProfileSerializer(read_only=True)
-
     class Meta:
         model = CPanel
         fields = [
             "id",
-            "user",
             "host",
             "username",
             "password",

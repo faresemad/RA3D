@@ -20,11 +20,9 @@ logger = logging.getLogger(__name__)
 
 
 class AccountViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    queryset = User.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = ProfileSerializer
-
-    def get_queryset(self):
-        return User.objects.exclude(id=User.objects.get(username=self.request.user.username).id)
 
     def get_serializer_class(self):
         if self.action == "unsuspend":

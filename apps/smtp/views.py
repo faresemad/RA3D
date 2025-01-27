@@ -8,37 +8,34 @@ from rest_framework.response import Response
 
 from apps.smtp.filters import SmtpFilter
 from apps.smtp.models import SMTP, SmtpStatus
-from apps.smtp.serializers import CreateSmtpSerializer, SmtpSerializer
-from apps.utils.permissions import IsSeller
+from apps.smtp.serializers import CreateSmtpSerializer, SmtpListSerializer, SmtpSerializer
+from apps.utils.permissions import IsOwner, IsSeller
 
 logger = logging.getLogger(__name__)
 
 
-class SmtpViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
-    queryset = (
-        SMTP.objects.select_related("user")
-        .filter(status=SmtpStatus.UNSOLD)
-        .only(
-            "user__username",
-            "user__picture",
-            "ip",
-            "port",
-            "smtp_type",
-            "status",
-            "price",
-            "created_at",
-        )
+class SellerSmtpViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
+    queryset = SMTP.objects.only(
+        "ip",
+        "port",
+        "username",
+        "password",
+        "smtp_type",
+        "status",
+        "price",
+        "created_at",
+        "is_deleted",
     )
     serializer_class = SmtpSerializer
-    permission_classes = [IsSeller]
+    permission_classes = [IsOwner]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_class = SmtpFilter
     ordering_fields = ["created_at"]
     search_fields = ["port", "ip", "user__username"]
 
     def get_permissions(self):
-        if self.action in ["list", "retrieve"]:
-            return [IsAuthenticated()]
+        if self.action == "create":
+            return [IsSeller()]
         return super().get_permissions()
 
     def get_serializer_class(self):
@@ -58,3 +55,27 @@ class SmtpViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.Gener
             },
             status=status.HTTP_201_CREATED,
         )
+
+
+class SmtpViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = (
+        SMTP.objects.select_related("user")
+        .filter(status=SmtpStatus.UNSOLD)
+        .only(
+            "user__username",
+            "user__picture",
+            "ip",
+            "username",
+            "port",
+            "smtp_type",
+            "status",
+            "price",
+            "created_at",
+        )
+    )
+    serializer_class = SmtpListSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filterset_class = SmtpFilter
+    ordering_fields = ["created_at"]
+    search_fields = ["port", "ip", "user__username"]

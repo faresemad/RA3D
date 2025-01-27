@@ -6,6 +6,6 @@ router = DefaultRouter()
 
 app_name = "cpanel"
 
-router.register("sell-cpanel", SellerCPanelViewSet, basename="sell-cpanel")
+router.register("seller/cpanel", SellerCPanelViewSet, basename="seller-cpanel")
 router.register("cpanel", CPanelViewSet, basename="cpanel")
 urlpatterns = router.urls

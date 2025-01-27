@@ -5,6 +5,29 @@ from apps.users.api.serializers.profile import UserProfileSerializer
 
 
 class RdpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rdp
+        fields = [
+            "id",
+            "ip",
+            "username",
+            "password",
+            "ram_size",
+            "cpu_cores",
+            "price",
+            "rdp_type",
+            "status",
+            "windows_type",
+            "access_type",
+            "details",
+            "created_at",
+            "updated_at",
+            "deleted_at",
+            "is_deleted",
+        ]
+
+
+class RdpListSerializer(serializers.ModelSerializer):
     user = UserProfileSerializer(read_only=True)
     ip = serializers.SerializerMethodField()
     username = serializers.SerializerMethodField()

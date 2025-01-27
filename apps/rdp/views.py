@@ -9,21 +9,25 @@ from rest_framework.response import Response
 
 from apps.rdp.filters import RdpFilter
 from apps.rdp.models import Rdp, RdpStatus
-from apps.rdp.serializers import CreateRdpSerializer, RdpSerializer
+from apps.rdp.serializers import CreateRdpSerializer, RdpListSerializer, RdpSerializer
 from apps.utils.permissions import IsOwner, IsSeller
 
 logger = logging.getLogger(__name__)
 
 
-class RdpViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
-    queryset = (
-        Rdp.objects.select_related("user")
-        .filter(status=RdpStatus.UNSOLD)
-        .only(
-            "user__username",
-            "user__picture",
+class SellerRdpViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
+    serializer_class = RdpSerializer
+    permission_classes = [IsOwner]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filterset_class = RdpFilter
+    ordering_fields = ["created_at"]
+    search_fields = ["tld", "user__username"]
+
+    def get_queryset(self):
+        queryset = Rdp.objects.filter(user=self.request.user).only(
             "ip",
             "username",
+            "password",
             "ram_size",
             "cpu_cores",
             "price",
@@ -33,20 +37,15 @@ class RdpViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.Generi
             "access_type",
             "details",
             "created_at",
+            "updated_at",
+            "deleted_at",
+            "is_deleted",
         )
-    )
-    serializer_class = RdpSerializer
-    permission_classes = [IsSeller]
-    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
-    filterset_class = RdpFilter
-    ordering_fields = ["created_at"]
-    search_fields = ["tld", "user__username"]
+        return queryset
 
     def get_permissions(self):
-        if self.action in ["list", "retrieve"]:
-            return [IsAuthenticated()]
-        elif self.action in ["mark_as_sold", "mark_as_unsold", "mark_as_delete"]:
-            return [IsOwner()]
+        if self.action == "create":
+            return [IsSeller()]
         return super().get_permissions()
 
     def get_serializer_class(self):
@@ -87,3 +86,31 @@ class RdpViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.Generi
         rdp.mark_as_delete()
         logger.info(f"RDP marked as deleted by {request.user.username}")
         return Response({"status": "success", "message": "RDP marked as deleted"})
+
+
+class RdpViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = (
+        Rdp.objects.select_related("user")
+        .filter(status=RdpStatus.UNSOLD)
+        .only(
+            "user__username",
+            "user__picture",
+            "ip",
+            "username",
+            "ram_size",
+            "cpu_cores",
+            "price",
+            "rdp_type",
+            "status",
+            "windows_type",
+            "access_type",
+            "details",
+            "created_at",
+        )
+    )
+    serializer_class = RdpListSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filterset_class = RdpFilter
+    ordering_fields = ["created_at"]
+    search_fields = ["tld", "user__username"]

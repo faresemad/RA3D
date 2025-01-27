@@ -9,40 +9,34 @@ from rest_framework.response import Response
 
 from apps.shells.filters import ShellFilter
 from apps.shells.models import Shell, ShellStatus
-from apps.shells.serializers import CreateShellSerializer, ShellSerializer
+from apps.shells.serializers import CreateShellSerializer, ShellListSerializer, ShellSerializer
 from apps.utils.permissions import IsOwner, IsSeller
 
 logger = logging.getLogger(__name__)
 
 
-class ShellViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
-    queryset = (
-        Shell.objects.select_related("user")
-        .filter(status=ShellStatus.UNSOLD)
-        .only(
-            "user__username",
-            "user__picture",
-            "shell_type",
-            "status",
-            "price",
-            "ssl",
-            "tld",
-            "details",
-            "created_at",
-        )
+class SellerShellViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
+    queryset = Shell.objects.filter(status=ShellStatus.UNSOLD).only(
+        "shell_url",
+        "shell_type",
+        "status",
+        "price",
+        "ssl",
+        "tld",
+        "details",
+        "created_at",
+        "is_deleted",
     )
     serializer_class = ShellSerializer
-    permission_classes = [IsSeller]
+    permission_classes = [IsOwner]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_class = ShellFilter
     ordering_fields = ["created_at"]
     search_fields = ["tld", "user__username"]
 
     def get_permissions(self):
-        if self.action in ["list", "retrieve"]:
-            return [IsAuthenticated()]
-        elif self.action in ["mark_as_sold", "mark_as_unsold", "mark_as_delete"]:
-            return [IsOwner()]
+        if self.action == "create":
+            return [IsSeller()]
         return super().get_permissions()
 
     def get_serializer_class(self):
@@ -83,3 +77,27 @@ class ShellViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.Gene
         shell.mark_as_delete()
         logger.info(f"Shell marked as deleted by {request.user.username}")
         return Response({"status": "success", "message": "Shell marked as deleted"})
+
+
+class ShellViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = (
+        Shell.objects.select_related("user")
+        .filter(status=ShellStatus.UNSOLD)
+        .only(
+            "user__username",
+            "user__picture",
+            "shell_type",
+            "status",
+            "price",
+            "ssl",
+            "tld",
+            "details",
+            "created_at",
+        )
+    )
+    serializer_class = ShellListSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filterset_class = ShellFilter
+    ordering_fields = ["created_at"]
+    search_fields = ["tld", "user__username"]

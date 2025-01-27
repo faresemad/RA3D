@@ -5,6 +5,23 @@ from apps.users.api.serializers.profile import UserProfileSerializer
 
 
 class ShellSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Shell
+        fields = [
+            "id",
+            "shell_url",
+            "shell_type",
+            "status",
+            "price",
+            "ssl",
+            "tld",
+            "details",
+            "created_at",
+            "is_deleted",
+        ]
+
+
+class ShellListSerializer(serializers.ModelSerializer):
     user = UserProfileSerializer()
 
     class Meta:

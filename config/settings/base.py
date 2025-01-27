@@ -39,6 +39,7 @@ LOCAL_APPS = [
     "apps.shells",
     "apps.rdp",
     "apps.cpanel",
+    "apps.orders",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

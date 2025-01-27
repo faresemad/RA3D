@@ -60,3 +60,38 @@ class Order(models.Model):
             models.Index(fields=["user"]),
             models.Index(fields=["status"]),
         ]
+
+
+class Transaction(models.Model):
+    class PaymentStatus(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        COMPLETED = "COMPLETED", "Completed"
+        FAILED = "FAILED", "Failed"
+
+    class Cryptocurrency(models.TextChoices):
+        BTC = "BTC", "Bitcoin"
+        ETH = "ETH", "Ethereum"
+        LTC = "LTC", "Litecoin"
+        USDT = "USDT", "Tether"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="transactions")
+    transaction_id = models.CharField(max_length=255, unique=True)
+    cryptocurrency = models.CharField(max_length=50, choices=Cryptocurrency.choices, default=Cryptocurrency.BTC)
+    amount = models.DecimalField(max_digits=20, decimal_places=8)
+    payment_status = models.CharField(max_length=50, choices=PaymentStatus.choices, default=PaymentStatus.PENDING)
+    payment_date = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Transaction {self.transaction_id} for Order {self.order.id}"
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Transaction"
+        verbose_name_plural = "Transactions"
+        indexes = [
+            models.Index(fields=["order"]),
+            models.Index(fields=["payment_status"]),
+        ]

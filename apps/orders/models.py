@@ -1,0 +1,62 @@
+import uuid
+
+from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator
+from django.db import models
+
+from apps.accounts.models import Account
+from apps.cpanel.models import CPanel
+from apps.rdp.models import Rdp
+from apps.shells.models import Shell
+
+User = get_user_model()
+
+
+class OrderStatus(models.TextChoices):
+    PENDING = "PENDING", "Pending"
+    PROCESSING = "PROCESSING", "Processing"
+    COMPLETED = "COMPLETED", "Completed"
+    CANCELLED = "CANCELLED", "Cancelled"
+    FAILED = "FAILED", "Failed"
+
+
+class PaymentMethod(models.TextChoices):
+    CRYPTO = "Cryptocurrency"
+
+
+class Order(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="orders")
+    account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
+    cpanel = models.ForeignKey(CPanel, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
+    rdp = models.ForeignKey(Rdp, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
+    shell = models.ForeignKey(Shell, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(1)])
+    status = models.CharField(max_length=255, choices=OrderStatus.choices, default=OrderStatus.PENDING)
+    payment_method = models.CharField(max_length=255, choices=PaymentMethod.choices, default=PaymentMethod.CRYPTO)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        self.total_price = 0
+        if self.account:
+            self.total_price += self.account.price
+        if self.cpanel:
+            self.total_price += self.cpanel.price
+        if self.rdp:
+            self.total_price += self.rdp.price
+        if self.shell:
+            self.total_price += self.shell.price
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Order #{self.id}"
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Order"
+        verbose_name_plural = "Orders"
+        indexes = [
+            models.Index(fields=["user"]),
+            models.Index(fields=["status"]),
+        ]

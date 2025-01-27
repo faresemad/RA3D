@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from apps.orders.helper.serializers import AccountSerializer, CPanelSerializer, RdpSerializer, ShellSerializer
 from apps.orders.models import Order, PaymentMethod
 
 
@@ -24,3 +25,14 @@ class CreateOrderSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("You can only select one product at a time.")
 
         return attrs
+
+
+class ListOrderSerializer(serializers.ModelSerializer):
+    account = AccountSerializer()
+    cpanel = CPanelSerializer()
+    rdp = RdpSerializer()
+    shell = ShellSerializer()
+
+    class Meta:
+        model = Order
+        fields = ["id", "account", "cpanel", "rdp", "shell", "total_price", "status", "payment_method", "created_at"]

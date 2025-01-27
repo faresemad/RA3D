@@ -21,6 +21,7 @@ urlpatterns += [
     path(f"{settings.API_PREFIX}cpanel/", include("apps.cpanel.urls", namespace="cpanel")),
     path(f"{settings.API_PREFIX}leads/", include("apps.leads.urls", namespace="leads")),
     path(f"{settings.API_PREFIX}notifications/", include("apps.notifications.urls", namespace="notifications")),
+    path(f"{settings.API_PREFIX}orders/", include("apps.orders.urls", namespace="orders")),
 ]
 
 # API patterns for Spectacular

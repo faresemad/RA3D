@@ -1,12 +1,13 @@
 import logging
-from decimal import Decimal
 
 from django.utils import timezone
 
 from apps.orders.models import OrderStatus, Transaction
+from apps.services.wallet import WalletService
 from apps.wallet.models import Wallet
 
 logger = logging.getLogger(__name__)
+wallet_service = WalletService()
 
 
 class TransactionService:
@@ -30,7 +31,6 @@ class TransactionService:
                 payment_date=coingate_order["created_at"],
                 wallet=wallet,
             )
-            wallet.deposit(Decimal(coingate_order["price_amount"]))
             logger.info(f"Created transaction {transaction.id} for order {order.id}")
             return transaction
         except Exception as e:
@@ -59,16 +59,18 @@ class TransactionService:
 
     @staticmethod
     def handle_order_status_update(transaction):
-        """
-        Update related order status based on transaction status
-        """
+        """Updated to handle seller payout"""
         order = transaction.order
+
         if transaction.payment_status == Transaction.PaymentStatus.COMPLETED:
             order.status = OrderStatus.COMPLETED
+            order.save()
+            # Credit seller wallet
+            WalletService.handle_order_completion(order)
         elif transaction.payment_status == Transaction.PaymentStatus.FAILED:
             order.status = OrderStatus.FAILED
+            order.save()
 
-        order.save()
         logger.info(f"Updated order {order.id} to status {order.status}")
         return order
 

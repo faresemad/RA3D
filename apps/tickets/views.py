@@ -1,8 +1,9 @@
 # views.py
 import logging
 
-from rest_framework import viewsets
+from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.tickets.models import Ticket, TicketResponse
@@ -12,9 +13,15 @@ from apps.tickets.serializers import TicketResponseSerializer, TicketSerializer
 logger = logging.getLogger(__name__)
 
 
-class TicketViewSet(viewsets.ModelViewSet):
+class TicketViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
     serializer_class = TicketSerializer
-    permission_classes = [IsOwnerOrStaff]
+    permission_classes = [IsAuthenticated, IsOwnerOrStaff]
 
     def get_queryset(self):
         queryset = Ticket.objects.select_related("user").prefetch_related("responses__user")
@@ -42,9 +49,9 @@ class TicketViewSet(viewsets.ModelViewSet):
         return Response({"status": "Ticket reopened"})
 
 
-class TicketResponseViewSet(viewsets.ModelViewSet):
+class TicketResponseViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = TicketResponseSerializer
-    permission_classes = [IsTicketParticipantOrStaff]
+    permission_classes = [IsAuthenticated, IsTicketParticipantOrStaff]
 
     def get_queryset(self):
         return TicketResponse.objects.select_related("user", "ticket").filter(ticket_id=self.kwargs["ticket_pk"])

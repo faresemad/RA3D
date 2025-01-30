@@ -7,7 +7,7 @@ from apps.orders.models import Order, Transaction
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "total_price", "status", "created_at")
-    list_filter = ("status", "payment_method", "created_at")
+    list_filter = ("status", "cryptocurrency", "created_at")
     search_fields = ("id", "user__email")
     readonly_fields = ("total_price", "created_at", "updated_at")
     date_hierarchy = "created_at"

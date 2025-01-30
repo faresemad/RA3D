@@ -9,11 +9,8 @@ coingate_service = CoinGateService()
 
 class OrderSerializer(serializers.ModelSerializer):
     status = serializers.CharField(read_only=True)
-    payment_method = serializers.CharField(read_only=True)
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    cryptocurrency = serializers.ChoiceField(
-        choices=Transaction.Cryptocurrency.choices, write_only=True, required=True
-    )
+    cryptocurrency = serializers.ChoiceField(choices=PaymentMethod.choices, write_only=True, required=True)
 
     class Meta:
         model = Order
@@ -26,12 +23,11 @@ class OrderSerializer(serializers.ModelSerializer):
             "shell",
             "total_price",
             "status",
-            "payment_method",
             "cryptocurrency",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "total_price", "status", "payment_method", "created_at", "updated_at"]
+        read_only_fields = ["id", "total_price", "status", "created_at", "updated_at"]
 
     def validate(self, attrs):
         # Keep your existing validation
@@ -43,7 +39,7 @@ class OrderSerializer(serializers.ModelSerializer):
         cryptocurrency = validated_data.pop("cryptocurrency")
 
         # Create the order first
-        order = Order.objects.create(**validated_data, payment_method=PaymentMethod.CRYPTO)
+        order = Order.objects.create(**validated_data, cryptocurrency=cryptocurrency)
 
         # Now create the transaction using the service
         coingate_order = coingate_service.create_order(order, cryptocurrency)

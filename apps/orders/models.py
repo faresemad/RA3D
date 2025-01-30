@@ -8,6 +8,7 @@ from apps.accounts.models import Account
 from apps.cpanel.models import CPanel
 from apps.rdp.models import Rdp
 from apps.shells.models import Shell
+from apps.wallet.models import Wallet
 
 User = get_user_model()
 
@@ -79,6 +80,7 @@ class Transaction(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="transactions")
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name="transactions")
     transaction_id = models.CharField(max_length=255, unique=True)
     cryptocurrency = models.CharField(max_length=50, choices=Cryptocurrency.choices, default=Cryptocurrency.BTC)
     amount = models.DecimalField(max_digits=20, decimal_places=8)
@@ -98,4 +100,5 @@ class Transaction(models.Model):
         indexes = [
             models.Index(fields=["order"]),
             models.Index(fields=["payment_status"]),
+            models.Index(fields=["wallet"]),
         ]

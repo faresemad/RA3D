@@ -21,3 +21,16 @@ class WalletViewSet(viewsets.ReadOnlyModelViewSet):
         wallet = WalletService.get_wallet(request.user)
         serializer = self.get_serializer(wallet)
         return Response(serializer.data)
+
+    @action(detail=False, methods=["get"], url_path="transaction-history")
+    def transaction_history(self, request: HttpRequest):
+        wallet = WalletService.get_wallet(request.user)
+        transactions = WalletService.get_transaction_history(wallet)
+        serializer = self.get_serializer(transactions, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"], url_path="transaction-count")
+    def transaction_count(self, request: HttpRequest):
+        wallet = WalletService.get_wallet(request.user)
+        count = WalletService.get_transaction_count(wallet)
+        return Response({"transaction_count": count})

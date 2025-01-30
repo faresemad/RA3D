@@ -40,6 +40,16 @@ class WalletService:
         return False
 
     @staticmethod
+    def get_transaction_history(wallet):
+        """Get transaction history for a user's wallet"""
+        return wallet.get_transactions()
+
+    @staticmethod
+    def get_transaction_count(wallet):
+        """Get transaction history for a user"""
+        return wallet.get_transaction_count()
+
+    @staticmethod
     def handle_order_completion(order: Order):
         """Credit seller wallet after successful order completion"""
         seller = None

@@ -26,7 +26,11 @@ class TicketViewSet(
     def get_queryset(self):
         queryset = Ticket.objects.select_related("user").prefetch_related("responses__user")
 
-        if self.request.user.is_staff:
+        is_staff_or_support = (
+            self.request.user.status == "SUPPORT" or self.request.user.is_staff or self.request.user.is_superuser
+        )
+
+        if is_staff_or_support:
             return queryset
         return queryset.filter(user=self.request.user)
 

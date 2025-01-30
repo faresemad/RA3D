@@ -7,7 +7,7 @@ MODE=DEVELOPMENT
 SECRET_KEY=1CwEyFo2MQfkeZ8Jbfax83QKxKKWXCEPPR39mJhfHkWfqZV3sY
 ALLOWED_HOSTS=127.0.0.1,0.0.0.0,localhost
 ADMIN_URL=admin/
-HOST=http://localhost
+BASE_URL=http://localhost:8000
 
 # Redis
 # ------------------------------------------------------------------------------

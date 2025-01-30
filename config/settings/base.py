@@ -201,12 +201,12 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # GetHost
-HOST = env("HOST", default="http://localhost:8000")
+BASE_URL = env("BASE_URL", default="http://localhost:8000")
 
 # CoinGate Settings
 COINGATE_APP_ID = env("COINGATE_APP_ID")
 COINGATE_API_KEY = env("COINGATE_API_KEY")
-COINGATE_CURRENCY = env("COINGATE_CURRENCY")
+COINGATE_SANDBOX = env("COINGATE_SANDBOX", default=True)
 
 # Logging
 LOGGING = {

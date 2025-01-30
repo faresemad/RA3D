@@ -1,38 +1,60 @@
 from rest_framework import serializers
 
-from apps.orders.helper.serializers import AccountSerializer, CPanelSerializer, RdpSerializer, ShellSerializer
-from apps.orders.models import Order, PaymentMethod
+from apps.orders.models import Order, PaymentMethod, Transaction
+from apps.services.coingate import CoinGateService
+from apps.services.transaction import TransactionService
+
+coingate_service = CoinGateService()
 
 
-class CreateOrderSerializer(serializers.ModelSerializer):
+class OrderSerializer(serializers.ModelSerializer):
+    # Remove the cryptocurrency field from here
+    status = serializers.CharField(read_only=True)
+    payment_method = serializers.CharField(read_only=True)
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:
         model = Order
-        fields = "__all__"
-        read_only_fields = ["id", "user", "total_price", "status", "created_at", "updated_at"]
-        extra_kwargs = {
-            "payment_method": {"default": PaymentMethod.CRYPTO},
-        }
+        fields = [
+            "id",
+            "user",
+            "account",
+            "cpanel",
+            "rdp",
+            "shell",
+            "total_price",
+            "status",
+            "payment_method",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "total_price", "status", "payment_method", "created_at", "updated_at"]
 
     def validate(self, attrs):
-        products = [attrs.get("account"), attrs.get("cpanel"), attrs.get("rdp"), attrs.get("shell")]
-        selected_products = sum(1 for product in products if product)
-
-        if selected_products == 0:
-            raise serializers.ValidationError("You must select one product (account, cpanel, rdp, or shell).")
-        if selected_products > 1:
-            raise serializers.ValidationError("You can only select one product at a time.")
-
+        # Keep your existing validation
+        if not any([attrs.get("account"), attrs.get("cpanel"), attrs.get("rdp"), attrs.get("shell")]):
+            raise serializers.ValidationError("At least one product must be selected.")
         return attrs
 
+    def create(self, validated_data):
+        # Explicitly handle cryptocurrency outside the model
+        cryptocurrency = self.context.get("cryptocurrency")
 
-class ListOrderSerializer(serializers.ModelSerializer):
-    account = AccountSerializer()
-    cpanel = CPanelSerializer()
-    rdp = RdpSerializer()
-    shell = ShellSerializer()
+        # Create the order first
+        order = Order.objects.create(**validated_data, payment_method=PaymentMethod.CRYPTO)
 
+        # Now create the transaction using the service
+        coingate_order = coingate_service.create_order(order, cryptocurrency)
+        if not coingate_order:
+            order.delete()
+            raise serializers.ValidationError("Payment gateway error")
+
+        TransactionService.create_transaction(order, coingate_order, cryptocurrency)
+        return order
+
+
+class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Order
-        fields = ["id", "account", "cpanel", "rdp", "shell", "total_price", "status", "payment_method", "created_at"]
+        model = Transaction
+        fields = "__all__"
+        read_only_fields = "__all__"

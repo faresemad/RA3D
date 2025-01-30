@@ -8,10 +8,12 @@ coingate_service = CoinGateService()
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    # Remove the cryptocurrency field from here
     status = serializers.CharField(read_only=True)
     payment_method = serializers.CharField(read_only=True)
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    cryptocurrency = serializers.ChoiceField(
+        choices=Transaction.Cryptocurrency.choices, write_only=True, required=True
+    )
 
     class Meta:
         model = Order
@@ -25,6 +27,7 @@ class OrderSerializer(serializers.ModelSerializer):
             "total_price",
             "status",
             "payment_method",
+            "cryptocurrency",
             "created_at",
             "updated_at",
         ]
@@ -37,8 +40,7 @@ class OrderSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        # Explicitly handle cryptocurrency outside the model
-        cryptocurrency = self.context.get("cryptocurrency")
+        cryptocurrency = validated_data.pop("cryptocurrency")
 
         # Create the order first
         order = Order.objects.create(**validated_data, payment_method=PaymentMethod.CRYPTO)

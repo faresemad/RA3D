@@ -21,16 +21,8 @@ class OrderViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
-        # Get cryptocurrency from request data
-        cryptocurrency = request.data.get("cryptocurrency")
-
-        if not cryptocurrency:
-            return Response({"error": "Cryptocurrency selection is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Add cryptocurrency to serializer context
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.context["cryptocurrency"] = cryptocurrency
 
         try:
             self.perform_create(serializer)

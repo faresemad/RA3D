@@ -16,9 +16,11 @@ coingate_service = CoinGateService()
 
 
 class OrderViewSet(viewsets.ModelViewSet):
-    queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Order.objects.select_related("user", "account", "cpanel", "rdp", "shell").all()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -27,8 +29,9 @@ class OrderViewSet(viewsets.ModelViewSet):
         try:
             self.perform_create(serializer)
             order = serializer.instance
+            transaction = Transaction.objects.select_related("order").get(order=order)
             return Response(
-                {"order_id": str(order.id), "payment_url": Transaction.objects.get(order=order).payment_url},
+                {"order_id": str(order.id), "payment_url": transaction.payment_url},
                 status=status.HTTP_201_CREATED,
             )
         except Exception as e:

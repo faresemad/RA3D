@@ -36,3 +36,4 @@ celery==5.4.0  # pyup: < 6.0  # https://github.com/celery/celery
 django-celery-beat==2.7.0  # https://github.com/celery/django-celery-beat
 django-debug-toolbar==4.4.6
 pyfcm==2.0.7  # https://github.com/olucurious/PyFCM
+drf_nested_routers==0.94.1  # https://github.com/alanjds/drf-nested-routers

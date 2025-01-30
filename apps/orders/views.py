@@ -69,3 +69,15 @@ class TransactionViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         return TransactionService.get_user_transactions(self.request.user)
+
+
+class PaymentSuccessView(APIView):
+    def get(self, request):
+        return Response({"status": "success", "message": "Payment completed successfully"})
+
+
+class PaymentCancelView(APIView):
+    def get(self, request):
+        return Response(
+            {"status": "cancelled", "message": "Payment was cancelled"}, status=status.HTTP_400_BAD_REQUEST
+        )

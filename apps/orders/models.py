@@ -34,6 +34,7 @@ class Order(models.Model):
     total_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(1)])
     status = models.CharField(max_length=255, choices=OrderStatus.choices, default=OrderStatus.PENDING)
     payment_method = models.CharField(max_length=255, choices=PaymentMethod.choices, default=PaymentMethod.CRYPTO)
+    cryptocurrency = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

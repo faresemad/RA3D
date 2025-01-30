@@ -5,9 +5,9 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .models import Ticket, TicketResponse
-from .permissions import IsOwnerOrStaff, IsTicketParticipantOrStaff
-from .serializers import TicketResponseSerializer, TicketSerializer
+from apps.tickets.models import Ticket, TicketResponse
+from apps.tickets.permissions import IsOwnerOrStaff, IsTicketParticipantOrStaff
+from apps.tickets.serializers import TicketResponseSerializer, TicketSerializer
 
 logger = logging.getLogger(__name__)
 

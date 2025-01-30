@@ -17,9 +17,11 @@ class TicketViewSet(viewsets.ModelViewSet):
     permission_classes = [IsOwnerOrStaff]
 
     def get_queryset(self):
+        queryset = Ticket.objects.select_related("user").prefetch_related("responses__user")
+
         if self.request.user.is_staff:
-            return Ticket.objects.all()
-        return Ticket.objects.filter(user=self.request.user)
+            return queryset
+        return queryset.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -45,7 +47,7 @@ class TicketResponseViewSet(viewsets.ModelViewSet):
     permission_classes = [IsTicketParticipantOrStaff]
 
     def get_queryset(self):
-        return TicketResponse.objects.filter(ticket_id=self.kwargs["ticket_pk"])
+        return TicketResponse.objects.select_related("user", "ticket").filter(ticket_id=self.kwargs["ticket_pk"])
 
     def perform_create(self, serializer):
         ticket = Ticket.objects.get(pk=self.kwargs["ticket_pk"])

@@ -1,23 +1,25 @@
+# serializers.py
 from rest_framework import serializers
 
-from apps.tickets.models import Ticket
+from apps.tickets.models import ReasonChoices, StatusChoices, Ticket, TicketResponse
 
 
-class BaseTicketSerializer(serializers.ModelSerializer):
+class TicketResponseSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = TicketResponse
+        fields = ["id", "user", "message", "created_at", "updated_at"]
+        read_only_fields = ["user", "created_at", "updated_at"]
+
+
+class TicketSerializer(serializers.ModelSerializer):
+    responses = TicketResponseSerializer(many=True, read_only=True)
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    reason = serializers.ChoiceField(choices=ReasonChoices.choices)
+    status = serializers.ChoiceField(choices=StatusChoices.choices, read_only=True)
+
     class Meta:
         model = Ticket
-        fields = ["id", "user", "title", "reason", "created_at"]
-
-
-class CreateTicketSerializer(BaseTicketSerializer):
-    class Meta(BaseTicketSerializer.Meta):
-        fields = BaseTicketSerializer.Meta.fields + ["message"]
-
-
-class RetrieveTicketSerializer(BaseTicketSerializer):
-    class Meta(BaseTicketSerializer.Meta):
-        fields = BaseTicketSerializer.Meta.fields + ["message", "status", "closed_at"]
-
-
-class ListTicketSerializer(BaseTicketSerializer):
-    pass
+        fields = ["id", "user", "title", "reason", "message", "status", "closed_at", "created_at", "responses"]
+        read_only_fields = ["status", "closed_at", "created_at"]

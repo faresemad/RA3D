@@ -7,20 +7,20 @@ from django.utils import timezone
 
 
 class ReasonChoices(TextChoices):
-    PAYMENT = "payment", "Payment"
-    ITEM_PROBLEM = "item_problem", "Item Problem"
-    REPORT_PROBLEM = "report_problem", "Report Problem"
-    OTHER = "other", "Other"
+    PAYMENT = "Payment"
+    ITEM_PROBLEM = "Item Problem"
+    REPORT_PROBLEM = "Report Problem"
+    OTHER = "Other"
 
 
 class StatusChoices(TextChoices):
-    OPENED = "opened", "Opened"
-    CLOSED = "closed", "Closed"
+    OPENED = "Opened"
+    CLOSED = "Closed"
 
 
 class Ticket(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="tickets")
     title = models.CharField(max_length=255)
     reason = models.CharField(max_length=255, choices=ReasonChoices.choices)
     message = models.TextField()
@@ -42,3 +42,18 @@ class Ticket(models.Model):
         self.status = StatusChoices.CLOSED
         self.closed_at = timezone.now()
         self.save()
+
+
+class TicketResponse(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE, related_name="responses")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.ticket.title} - {self.user.username}"
+
+    class Meta:
+        ordering = ["-created_at"]

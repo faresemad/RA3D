@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from apps.cpanel.filters import CPanelFilter
 from apps.cpanel.models import CPanel, CPanelStatus
 from apps.cpanel.serializers import CreateCPanelSerializer, OwnerCPanelSerializer, UserCPanelSerializer
+from apps.cpanel.utils import check_cpanel_status
 from apps.utils.permissions import IsOwner, IsSeller
 
 logger = logging.getLogger(__name__)
@@ -109,3 +110,9 @@ class CPanelViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     filterset_class = CPanelFilter
     ordering_fields = ["created_at"]
     search_fields = ["tld", "user__username"]
+
+    @action(detail=True, methods=["get"], url_path="check-status")
+    def check_status(self, request, pk=None):
+        cpanel = self.get_object()
+        status = check_cpanel_status(cpanel.host)
+        return Response(status)

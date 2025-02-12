@@ -4,7 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from apps.rdp.models import Rdp
-from apps.rdp.tasks import check_rdp_port, get_ip_geolocation_and_hosting_info
+from apps.rdp.tasks import get_ip_geolocation_and_hosting_info
 
 logger = logging.getLogger(__name__)
 
@@ -15,5 +15,4 @@ def fetch_rdp_details_after_creation(sender, instance: Rdp, created, **kwargs):
     if created:
         # Only trigger the task when a new Rdp object is created
         logger.info(f"Triggering fetch_rdp_details task for RDP IP: {instance.ip}")
-        check_rdp_port.apply_async((instance.id,))
         get_ip_geolocation_and_hosting_info.apply_async((instance.id,))

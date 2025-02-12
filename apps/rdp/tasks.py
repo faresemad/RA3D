@@ -10,23 +10,6 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task
-def check_rdp_port(id, port=3389, timeout=3):
-    """Check if an RDP port is open (no credential extraction)."""
-    ip = Rdp.objects.get(id=id).ip
-    logger.info(f"Checking RDP port {port} on IP {ip} with timeout {timeout}s")
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(timeout)
-            result = s.connect_ex((ip, port))
-            status = "Open" if result == 0 else "Closed"
-            logger.info(f"Port {port} on {ip} is {status}")
-            return status
-    except OSError as e:
-        logger.error(f"Error checking RDP port on {ip}: {str(e)}")
-        return "Error"
-
-
-@shared_task
 def get_ip_geolocation_and_hosting_info(target_id):
     """Fetch geolocation, hosting provider, and network info for a domain/IP."""
     rdp = Rdp.objects.get(id=target_id)

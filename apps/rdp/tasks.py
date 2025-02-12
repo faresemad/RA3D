@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=True)
-def get_ip_geolocation_and_hosting_info(target_id):
+def get_ip_geolocation_and_hosting_info(self, target_id):
     """Fetch geolocation, hosting provider, and network info for a domain/IP."""
     rdp = Rdp.objects.get(id=target_id)
     target = rdp.ip
@@ -53,8 +53,10 @@ def get_ip_geolocation_and_hosting_info(target_id):
         rdp.details = result
         rdp.save()
         logger.info(f"Successfully gathered information for {target}")
+        self.update_state(state="SUCCESS")
         return result
-
     except (socket.gaierror, requests.RequestException) as e:
         logger.error(f"Error gathering information for {target}: {str(e)}")
         return {"error": str(e)}
+    except Exception as e:
+        self.update_state(state="FAILURE", meta={"exc": str(e)})

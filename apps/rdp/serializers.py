@@ -10,6 +10,8 @@ class RdpSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "ip",
+            "hosting",
+            "location",
             "username",
             "password",
             "ram_size",

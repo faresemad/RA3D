@@ -102,8 +102,9 @@ class RdpViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             "status",
             "windows_type",
             "access_type",
-            "details",
             "created_at",
+            "hosting",
+            "location",
         )
     )
     serializer_class = RdpListSerializer

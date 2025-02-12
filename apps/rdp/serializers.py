@@ -34,6 +34,8 @@ class RdpListSerializer(serializers.ModelSerializer):
         model = Rdp
         fields = [
             "id",
+            "hosting",
+            "location",
             "user",
             "ip",
             "username",
@@ -44,7 +46,6 @@ class RdpListSerializer(serializers.ModelSerializer):
             "status",
             "windows_type",
             "access_type",
-            "details",
             "created_at",
         ]
 

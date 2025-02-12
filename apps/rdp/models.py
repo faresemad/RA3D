@@ -54,6 +54,8 @@ class Rdp(models.Model):
     status = models.CharField(max_length=255, choices=RdpStatus.choices, default=RdpStatus.UNSOLD)
     windows_type = models.CharField(max_length=255, choices=RdpWindowsType.choices, default=RdpWindowsType.WINDOWS)
     access_type = models.CharField(max_length=255, choices=RdpUserAccessType.choices, default=RdpUserAccessType.USER)
+    location = models.CharField(max_length=255, null=True, blank=True)
+    hosting = models.CharField(max_length=255, null=True, blank=True)
     details = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

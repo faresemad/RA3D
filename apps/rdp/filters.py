@@ -8,6 +8,8 @@ class RdpFilter(filters.FilterSet):
         model = Rdp
         fields = {
             "status": ["exact"],
+            "hosting": ["exact"],
+            "location": ["exact"],
             "windows_type": ["exact"],
             "access_type": ["exact"],
             "price": ["exact", "gte", "lte"],

@@ -19,7 +19,8 @@ class UserCPanelSerializer(serializers.ModelSerializer):
             "tld",
             "cpanel_type",
             "status",
-            "details",
+            "hosting",
+            "location",
             "created_at",
         ]
 
@@ -41,6 +42,8 @@ class OwnerCPanelSerializer(serializers.ModelSerializer):
             "ssl",
             "tld",
             "details",
+            "hosting",
+            "location",
             "created_at",
         ]
 

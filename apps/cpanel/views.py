@@ -34,6 +34,8 @@ class SellerCPanelViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewse
             "ssl",
             "tld",
             "details",
+            "hosting",
+            "location",
             "created_at",
         )
         return queryset
@@ -96,8 +98,9 @@ class CPanelViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             "tld",
             "cpanel_type",
             "status",
-            "details",
             "created_at",
+            "hosting",
+            "location",
         )
     )
     serializer_class = UserCPanelSerializer

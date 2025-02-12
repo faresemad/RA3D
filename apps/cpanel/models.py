@@ -1,5 +1,4 @@
 import uuid
-from urllib.parse import urlparse
 
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
@@ -31,6 +30,8 @@ class CPanel(models.Model):
     status = models.CharField(max_length=255, choices=CPanelStatus.choices, default=CPanelStatus.UNSOLD)
     ssl = models.BooleanField(default=False)
     tld = models.CharField(max_length=10, null=True, blank=True)
+    hosting = models.CharField(max_length=255, null=True, blank=True)
+    location = models.CharField(max_length=255, null=True, blank=True)
     details = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -49,21 +50,6 @@ class CPanel(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user.username}'s cPanel {self.host}"
-
-    def save(self, *args, **kwargs):
-        if self.host:
-            try:
-                parsed_url = urlparse(self.host)
-                if parsed_url.scheme and parsed_url.netloc:
-                    self.tld = parsed_url.netloc.split(".")[-1]
-                    self.ssl = parsed_url.scheme == "https"
-                else:
-                    self.tld = self.host.split(".")[-1] if "." in self.host else None
-                    self.ssl = False
-            except Exception:
-                self.tld = None
-                self.ssl = False
-        super().save(*args, **kwargs)
 
     @transaction.atomic
     def mark_as_delete(self) -> None:

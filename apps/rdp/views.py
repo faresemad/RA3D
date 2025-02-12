@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from apps.rdp.filters import RdpFilter
 from apps.rdp.models import Rdp, RdpStatus
 from apps.rdp.serializers import CreateRdpSerializer, RdpListSerializer, RdpSerializer
+from apps.rdp.utils import check_ip_blacklist, check_rdp_port
 from apps.utils.permissions import IsOwner, IsSeller
 
 logger = logging.getLogger(__name__)
@@ -113,3 +114,17 @@ class RdpViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     filterset_class = RdpFilter
     ordering_fields = ["created_at"]
     search_fields = ["tld", "user__username"]
+
+    @action(detail=True, methods=["get"], url_path="check-blacklist")
+    def check_blacklist(self, request, pk=None):
+        """Check if RDP's IP is blacklisted"""
+        rdp_instance = self.get_object()
+        results = check_ip_blacklist(rdp_instance.ip)
+        return Response(results)
+
+    @action(detail=True, methods=["get"], url_path="check-port")
+    def check_ip(self, request, pk=None):
+        """Check if RDP's IP is open to RDP port"""
+        rdp_instance = self.get_object()
+        results = check_rdp_port(rdp_instance.ip)
+        return Response({"status": results})

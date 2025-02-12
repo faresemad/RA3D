@@ -279,3 +279,9 @@ CELERY_TASK_TIME_LIMIT = 5 * 60
 CELERY_TASK_SOFT_TIME_LIMIT = 60
 CELERY_WORKER_SEND_TASK_EVENTS = True
 CELERY_TASK_SEND_SENT_EVENT = True
+
+
+# AbuseIPDB Settings
+# ------------------------------------------------------------------------------
+ABUSEIPDB_API_URL = env("ABUSEIPDB_API_URL")
+ABUSEIPDB_API_KEY = env("ABUSEIPDB_API_KEY")

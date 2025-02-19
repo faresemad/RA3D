@@ -77,12 +77,14 @@ class BulkCreateAccountTextSerializer(serializers.Serializer):
         Expected format:
         domain | username | password | category | country | type | details | notes | price | proof
         """
+        logger.info("Starting bulk account validation")
         value = attrs.get("data", "").strip()
         lines = value.split("\n")
         accounts = []
         errors = []
 
         for index, line in enumerate(lines, start=1):
+            logger.debug(f"Processing line {index}")
             parts = line.split("|")
             if len(parts) != 10:
                 errors.append(f"Line {index}: Incorrect number of columns (Expected 10, got {len(parts)})")
@@ -92,7 +94,7 @@ class BulkCreateAccountTextSerializer(serializers.Serializer):
                 p.strip() for p in parts
             )
 
-            # Validate numeric fields
+            logger.debug(f"Validating numeric fields for line {index}")
             try:
                 price = Decimal(price)
                 if price < 1:
@@ -100,18 +102,18 @@ class BulkCreateAccountTextSerializer(serializers.Serializer):
             except Exception:
                 errors.append(f"Line {index}: Invalid price format")
 
-            # Validate category and type choices
+            logger.debug(f"Validating category and type choices for line {index}")
             if category not in dict(AccountCategory.choices):
                 errors.append(f"Line {index}: Invalid category '{category}'")
             if type_ not in dict(AccountType.choices):
                 errors.append(f"Line {index}: Invalid type '{type_}'")
 
-            # Validate proof URL
+            logger.debug(f"Validating proof URL for line {index}")
             if not re.match(r"^https?:\/\/((?:vgy\.me|prnt\.sc|gyazo\.com)\/.*)", proof):
                 errors.append(f"Line {index}: Invalid proof URL")
 
-            # Add valid accounts
             if not errors:
+                logger.debug(f"Adding valid account data for line {index}")
                 accounts.append(
                     {
                         "domain": domain,
@@ -130,18 +132,23 @@ class BulkCreateAccountTextSerializer(serializers.Serializer):
                 )
 
         if errors:
+            logger.error(f"Validation failed with {len(errors)} errors")
             raise serializers.ValidationError({"errors": errors})
 
-        return {"accounts": accounts}  # Ensure 'accounts' key exists
+        logger.info(f"Validation completed successfully with {len(accounts)} valid accounts")
+        return {"accounts": accounts}
 
     def create(self, validated_data):
-        """Bulk create accounts"""
-        request_user = self.context["request"].user  # Get the user from the request
+        logger.info("Starting bulk account creation")
+        request_user = self.context["request"].user
         accounts_data = validated_data["accounts"]
 
-        # Assign user to all accounts
+        logger.debug("Assigning user to accounts")
         for account_data in accounts_data:
             account_data["user"] = request_user
 
+        logger.debug("Creating account objects")
         accounts = [Account(**data) for data in accounts_data]
-        return Account.objects.bulk_create(accounts)
+        created_accounts = Account.objects.bulk_create(accounts)
+        logger.info(f"Successfully created {len(created_accounts)} accounts")
+        return created_accounts

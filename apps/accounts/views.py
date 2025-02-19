@@ -76,10 +76,24 @@ class SellerAccountViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, views
 
     @action(detail=False, methods=["post"], url_path="bulk-create")
     def bulk_create(self, request, *args, **kwargs):
-        """Custom action for bulk account creation via textarea input"""
+        """
+        Bulk create accounts from textarea input.
+
+        Input Format:
+            domain | username | password | category | country | type | details | notes | price | proof
+
+        Rules:
+        - Each field should be separated by ' | '
+        - Each account entry should be on a new line
+        - All fields are required
+
+        Example:
+            example.com | user123 | pass123 | social | US | premium | details here | notes | 10.00 | proof_url
+        """
         serializer = self.get_serializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
-        serializer.save()  # Calls bulk_create inside serializer
+        serializer.save()
+        logger.info(f"Bulk account created by {request.user.username}")
         return Response({"message": "Accounts created successfully!"}, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"])

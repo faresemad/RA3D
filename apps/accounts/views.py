@@ -9,7 +9,12 @@ from rest_framework.response import Response
 
 from apps.accounts.filters import AccountFilter
 from apps.accounts.models import Account
-from apps.accounts.serializers import BuyerAccountSerializer, CreateAccountSerializer, OwnerAccountSerializer
+from apps.accounts.serializers import (
+    BulkCreateAccountTextSerializer,
+    BuyerAccountSerializer,
+    CreateAccountSerializer,
+    OwnerAccountSerializer,
+)
 from apps.utils.permissions import IsOwner, IsSeller
 
 logger = logging.getLogger(__name__)
@@ -46,7 +51,9 @@ class SellerAccountViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, views
         return super().get_permissions()
 
     def get_serializer_class(self):
-        if self.action == "create":
+        if self.action == "bulk_create":
+            return BulkCreateAccountTextSerializer
+        elif self.action == "create":
             return CreateAccountSerializer
         return super().get_serializer_class()
 
@@ -66,6 +73,14 @@ class SellerAccountViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, views
             },
             status=status.HTTP_201_CREATED,
         )
+
+    @action(detail=False, methods=["post"], url_path="bulk-create")
+    def bulk_create(self, request, *args, **kwargs):
+        """Custom action for bulk account creation via textarea input"""
+        serializer = self.get_serializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()  # Calls bulk_create inside serializer
+        return Response({"message": "Accounts created successfully!"}, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"])
     def mark_as_sold(self, request, pk=None):

@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class SellerAccountViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
     serializer_class = OwnerAccountSerializer
-    permission_classes = [IsOwner]
+    permission_classes = [IsOwner, IsAuthenticated]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_class = AccountFilter
     ordering_fields = ["created_at"]
@@ -51,7 +51,11 @@ class SellerAccountViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, views
         return super().get_serializer_class()
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        """Support bulk creation of accounts."""
+        if isinstance(request.data, list):
+            serializer = self.get_serializer(data=request.data, many=True)
+        else:
+            serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         logger.info(f"Account created by {request.user.username}")

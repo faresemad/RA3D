@@ -44,9 +44,19 @@ class OwnerAccountSerializer(serializers.ModelSerializer):
         ]
 
 
+class BulkCreateAccountSerializer(serializers.ListSerializer):
+    """Serializer to handle bulk creation of accounts."""
+
+    def create(self, validated_data):
+        # Create multiple Account objects at once
+        accounts = [Account(**data) for data in validated_data]
+        return Account.objects.bulk_create(accounts)
+
+
 class CreateAccountSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
     class Meta:
         model = Account
         exclude = ["status", "is_sold"]
+        list_serializer_class = BulkCreateAccountSerializer

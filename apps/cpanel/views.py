@@ -9,7 +9,12 @@ from rest_framework.response import Response
 
 from apps.cpanel.filters import CPanelFilter
 from apps.cpanel.models import CPanel, CPanelStatus
-from apps.cpanel.serializers import CreateCPanelSerializer, OwnerCPanelSerializer, UserCPanelSerializer
+from apps.cpanel.serializers import (
+    BulkCreateCPanelTextSerializer,
+    CreateCPanelSerializer,
+    OwnerCPanelSerializer,
+    UserCPanelSerializer,
+)
 from apps.cpanel.utils import check_cpanel_status
 from apps.utils.permissions import IsOwner, IsSeller
 
@@ -18,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class SellerCPanelViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
     serializer_class = OwnerCPanelSerializer
-    permission_classes = [IsOwner]
+    permission_classes = [IsOwner, IsAuthenticated]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_class = CPanelFilter
     ordering_fields = ["created_at"]
@@ -49,6 +54,8 @@ class SellerCPanelViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewse
     def get_serializer_class(self):
         if self.action == "create":
             return CreateCPanelSerializer
+        if self.action == "bulk_create":
+            return BulkCreateCPanelTextSerializer
         return super().get_serializer_class()
 
     def create(self, request, *args, **kwargs):
@@ -63,6 +70,25 @@ class SellerCPanelViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewse
             },
             status=status.HTTP_201_CREATED,
         )
+
+    @action(detail=False, methods=["post"], url_path="bulk-create")
+    def bulk_create(self, request, *args, **kwargs):
+        """
+        Bulk create cPanel from textarea input.
+
+        Input Format:
+            host | username | password | price | cpanel_type
+
+        Rules:
+        - Each field should be separated by ' | '
+        - Each account entry should be on a new line
+        - All fields are required
+        """
+        serializer = self.get_serializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        logger.info(f"Bulk CPanel created by {request.user.username}")
+        return Response({"message": "cPanels created successfully!"}, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"])
     def mark_as_sold(self, request, pk=None):

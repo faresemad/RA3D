@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 import pandas as pd
+from django.db import IntegrityError
 from django.db.models.signals import post_save
 from rest_framework import serializers
 
@@ -227,7 +228,7 @@ class BulkUploadRdpSerializer(serializers.Serializer):
         return attrs
 
     def create(self, validated_data):
-        """Bulk create RDP records"""
+        """Bulk create RDP records, avoiding duplicates"""
         request_user = self.context["request"].user  # Get the user from the request
         rdps_data = validated_data["rdps"]
 
@@ -235,10 +236,20 @@ class BulkUploadRdpSerializer(serializers.Serializer):
         for rdp_data in rdps_data:
             rdp_data["user"] = request_user
 
-        # Bulk create RDP instances
-        rdp_instances = Rdp.objects.bulk_create([Rdp(**data) for data in rdps_data])
+        # Get existing RDP records for this user
+        existing_rdps = set(Rdp.objects.filter(user=request_user).values_list("ip", flat=True))
 
-        for instance in rdp_instances:
-            post_save.send(sender=Rdp, instance=instance, created=True)
+        # Filter out duplicate IPs
+        new_rdps = [Rdp(**data) for data in rdps_data if data["ip"] not in existing_rdps]
 
-        return rdp_instances
+        if not new_rdps:
+            raise serializers.ValidationError("All provided RDPs already exist.")
+
+        try:
+            # Bulk create only new RDPs
+            created_rdps = Rdp.objects.bulk_create(new_rdps)
+            for instance in created_rdps:
+                post_save.send(sender=Rdp, instance=instance, created=True)
+            return created_rdps
+        except IntegrityError:
+            raise serializers.ValidationError("Duplicate entries detected in the file.")

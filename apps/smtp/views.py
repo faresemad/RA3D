@@ -2,13 +2,20 @@ import logging
 
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.smtp.filters import SmtpFilter
 from apps.smtp.models import SMTP, SmtpStatus
-from apps.smtp.serializers import CreateSmtpSerializer, SmtpListSerializer, SmtpSerializer
+from apps.smtp.serializers import (
+    BulkCreateSMTPTextSerializer,
+    BulkUploadSMTPSerializer,
+    CreateSmtpSerializer,
+    SmtpListSerializer,
+    SmtpSerializer,
+)
 from apps.utils.permissions import IsOwner, IsSeller
 
 logger = logging.getLogger(__name__)
@@ -27,7 +34,7 @@ class SellerSmtpViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets
         "is_deleted",
     )
     serializer_class = SmtpSerializer
-    permission_classes = [IsOwner]
+    permission_classes = [IsAuthenticated, IsOwner]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_class = SmtpFilter
     ordering_fields = ["created_at"]
@@ -41,6 +48,10 @@ class SellerSmtpViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets
     def get_serializer_class(self):
         if self.action == "create":
             return CreateSmtpSerializer
+        elif self.action == "bulk_create":
+            return BulkCreateSMTPTextSerializer
+        elif self.action == "bulk_upload":
+            return BulkUploadSMTPSerializer
         return super().get_serializer_class()
 
     def create(self, request, *args, **kwargs):
@@ -55,6 +66,38 @@ class SellerSmtpViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets
             },
             status=status.HTTP_201_CREATED,
         )
+
+    @action(detail=False, methods=["post"], url_path="bulk-create")
+    def bulk_create(self, request, *args, **kwargs):
+        serializer = BulkCreateSMTPTextSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "Shells created successfully!"}, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=["post"], url_path="bulk-upload")
+    def bulk_upload(self, request, *args, **kwargs):
+        serializer = BulkUploadSMTPSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "Shells uploaded successfully!"}, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["post"])
+    def mark_as_sold(self, request, pk=None):
+        smtp = self.get_object()
+        smtp.mark_as_sold()
+        return Response({"status": "smtp marked as sold"})
+
+    @action(detail=True, methods=["post"])
+    def mark_as_unsold(self, request, pk=None):
+        smtp = self.get_object()
+        smtp.mark_as_unsold()
+        return Response({"status": "smtp marked as unsold"})
+
+    @action(detail=True, methods=["post"])
+    def mark_as_deleted(self, request, pk=None):
+        smtp = self.get_object()
+        smtp.mark_as_deleted()
+        return Response({"status": "smtp marked as deleted"})
 
 
 class SmtpViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):

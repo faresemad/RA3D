@@ -2,6 +2,7 @@ import logging
 from decimal import Decimal
 
 import pandas as pd
+from django.db import IntegrityError
 from django.db.models.signals import post_save
 from rest_framework import serializers
 
@@ -128,15 +129,22 @@ class BulkCreateShellTextSerializer(serializers.Serializer):
         for shell_data in shells_data:
             shell_data["user"] = request_user
 
-        logger.debug(f"Creating {len(shells_data)} Shell instances")
-        shell_instances = Shell.objects.bulk_create([Shell(**data) for data in shells_data])
+        # Fetch existing Shell URLs for this user
+        existing_shells = set(Shell.objects.filter(user=request_user).values_list("shell_url", flat=True))
 
-        logger.debug("Triggering post_save signals")
-        for instance in shell_instances:
-            post_save.send(sender=Shell, instance=instance, created=True)
+        # Filter out duplicate shell URLs
+        new_shells = [Shell(**data) for data in shells_data if data["shell_url"] not in existing_shells]
 
-        logger.info(f"Successfully created {len(shell_instances)} Shells")
-        return shell_instances
+        if not new_shells:
+            return {"message": b"No new Shells were created. All provided Shells already exist.", b"created_count": 0}
+
+        try:
+            created_shells = Shell.objects.bulk_create(new_shells)
+            for instance in created_shells:
+                post_save.send(sender=Shell, instance=instance, created=True)
+            return created_shells
+        except IntegrityError:
+            raise serializers.ValidationError("Duplicate shell entries detected in the file.")
 
 
 class BulkUploadShellSerializer(serializers.Serializer):
@@ -245,16 +253,30 @@ class BulkUploadShellSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         """Bulk create Shell records"""
+        logger.info("Starting bulk creation of Shells")
         request_user = self.context["request"].user
         shells_data = validated_data["shells"]
 
         for shell_data in shells_data:
             shell_data["user"] = request_user
 
-        shell_instances = Shell.objects.bulk_create([Shell(**data) for data in shells_data])
+        # Fetch existing Shell URLs for this user
+        existing_shells = set(Shell.objects.filter(user=request_user).values_list("shell_url", flat=True))
 
-        logger.debug("Triggering post_save signals")
-        for instance in shell_instances:
-            post_save.send(sender=Shell, instance=instance, created=True)
+        # Filter out duplicate shell URLs
+        new_shells = [Shell(**data) for data in shells_data if data["shell_url"] not in existing_shells]
 
-        return shell_instances
+        if not new_shells:
+            return {"message": b"No new Shells were created. All provided Shells already exist.", b"created_count": 0}
+
+        try:
+            # Bulk create only new Shells
+            created_shells = Shell.objects.bulk_create(new_shells)
+            for instance in created_shells:
+                post_save.send(sender=Shell, instance=instance, created=True)
+            return {
+                "message": f"{len(created_shells)} Shells created successfully.",
+                "created_count": len(created_shells),
+            }
+        except IntegrityError:
+            return {"message": "Some Shells were skipped due to duplication."}

@@ -33,7 +33,6 @@ LOCAL_APPS = [
     "apps.tickets",
     "apps.accounts",
     "apps.webmails",
-    "apps.leads",
     "apps.notifications",
     "apps.smtp",
     "apps.shells",

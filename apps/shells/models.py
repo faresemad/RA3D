@@ -11,7 +11,7 @@ User = get_user_model()
 
 class ShellType(models.TextChoices):
     CREATED = "Created", "Created"
-    HACKED = "Hacked / Cracked", "Hacked / Cracked"
+    HACKED = "Cracked", "Cracked"
 
 
 class ShellStatus(models.TextChoices):

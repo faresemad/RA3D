@@ -9,7 +9,7 @@ User = get_user_model()
 
 class SMTPType(models.TextChoices):
     CREATED = "Created", "Created"
-    HACKED = "Hacked / Cracked", "Hacked / Cracked"
+    HACKED = "Cracked", "Cracked"
 
 
 class SmtpStatus(models.TextChoices):

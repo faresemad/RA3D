@@ -19,7 +19,7 @@ class WebMailCategory(models.TextChoices):
 
 class WebMailType(models.TextChoices):
     CREATED = "Created", "Created"
-    HACKED = "Hacked / Cracked", "Hacked / Cracked"
+    HACKED = "Cracked", "Cracked"
     LOGS = "Logs", "Logs"
 
 
@@ -75,6 +75,11 @@ class WebMail(models.Model):
     def mark_as_sold(self):
         self.status = WebMailStatus.SOLD
         self.is_sold = True
+        self.save()
+
+    def mark_as_unsold(self):
+        self.status = WebMailStatus.UNSOLD
+        self.is_sold = False
         self.save()
 
     def mark_as_deleted(self):

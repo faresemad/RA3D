@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 
 import pandas as pd
@@ -7,6 +8,8 @@ from rest_framework import serializers
 
 from apps.rdp.models import Rdp, RdpStatus, RdpType, RdpUserAccessType, RdpWindowsType
 from apps.users.api.serializers.profile import UserProfileSerializer
+
+logger = logging.getLogger(__name__)
 
 
 class RdpSerializer(serializers.ModelSerializer):
@@ -81,6 +84,112 @@ class CreateRdpSerializer(serializers.ModelSerializer):
             "windows_type",
             "access_type",
         ]
+
+
+class BulkCreateRdpTextSerializer(serializers.Serializer):
+    data = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        """
+        Parse textarea input and validate each RDP entry.
+        Expected format:
+        ip | username | password | ram_size | cpu_cores | price | rdp_type | windows_type | access_type
+        """
+        logger.info("Starting validation of bulk RDP data")
+        value = attrs.get("data", "").strip()
+        lines = value.split("\n")
+        rdps = []
+        errors = []
+
+        logger.debug(f"Processing {len(lines)} lines of RDP data")
+        for index, line in enumerate(lines, start=1):
+            parts = line.split("|")
+            if len(parts) != 9:
+                logger.warning(f"Line {index} has incorrect number of columns: {len(parts)}")
+                errors.append(f"Line {index}: Incorrect number of columns (Expected 9, got {len(parts)})")
+                continue
+
+            ip, username, password, ram_size, cpu_cores, price, rdp_type, windows_type, access_type = (
+                p.strip() for p in parts
+            )
+
+            # Validate numeric fields
+            try:
+                ram_size = int(ram_size)
+                cpu_cores = int(cpu_cores)
+                price = Decimal(price)
+                if price < 1:
+                    logger.warning(f"Line {index} has invalid price: {price}")
+                    errors.append(f"Line {index}: Price must be at least 1")
+            except ValueError:
+                logger.warning(f"Line {index} has invalid numeric format")
+                errors.append(f"Line {index}: Invalid format for ram_size, cpu_cores, or price")
+
+            # Validate RDP Type
+            if rdp_type not in dict(RdpType.choices):
+                logger.warning(f"Line {index} has invalid RDP type: {rdp_type}")
+                errors.append(f"Line {index}: Invalid RDP type '{rdp_type}'")
+
+            # Validate Windows Type
+            if windows_type not in dict(RdpWindowsType.choices):
+                logger.warning(f"Line {index} has invalid Windows type: {windows_type}")
+                errors.append(f"Line {index}: Invalid Windows type '{windows_type}'")
+
+            # Validate Access Type
+            if access_type not in dict(RdpUserAccessType.choices):
+                logger.warning(f"Line {index} has invalid Access type: {access_type}")
+                errors.append(f"Line {index}: Invalid Access type '{access_type}'")
+
+            if not errors:
+                logger.debug(f"Line {index} validated successfully")
+                rdps.append(
+                    {
+                        "ip": ip,
+                        "username": username,
+                        "password": password,
+                        "ram_size": ram_size,
+                        "cpu_cores": cpu_cores,
+                        "price": price,
+                        "rdp_type": rdp_type,
+                        "status": RdpStatus.UNSOLD,  # Default status to UNSOLD
+                        "windows_type": windows_type,
+                        "access_type": access_type,
+                        "location": None,  # Default to None
+                        "hosting": None,  # Default to None
+                        "details": {},
+                    }
+                )
+
+        if errors:
+            logger.error(f"Validation failed with {len(errors)} errors")
+            raise serializers.ValidationError({"errors": errors})
+
+        logger.info(f"Validation completed successfully. {len(rdps)} RDPs ready for creation")
+        return {"rdps": rdps}
+
+    def create(self, validated_data):
+        """Bulk create RDP records and manually trigger post_save signal"""
+        logger.info("Starting bulk creation of RDPs")
+        request_user = self.context["request"].user
+        rdps_data = validated_data["rdps"]
+
+        # Check for existing RDPs to avoid duplicates
+        existing_rdps = set(Rdp.objects.filter(user=request_user).values_list("ip", flat=True))
+        new_rdps = [Rdp(**data) for data in rdps_data if data["ip"] not in existing_rdps]
+
+        if not new_rdps:
+            logger.warning("All RDPs in the file already exist for the user.")
+            raise serializers.ValidationError("All provided RDPs already exist.")
+
+        logger.debug(f"Creating {len(new_rdps)} RDP instances")
+        rdp_instances = Rdp.objects.bulk_create(new_rdps)
+
+        logger.debug("Triggering post_save signals")
+        for instance in rdp_instances:
+            post_save.send(sender=Rdp, instance=instance, created=True)
+
+        logger.info(f"Successfully created {len(rdp_instances)} RDPs")
+        return rdp_instances
 
 
 class BulkUploadRdpSerializer(serializers.Serializer):

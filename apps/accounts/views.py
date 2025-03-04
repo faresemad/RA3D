@@ -11,6 +11,7 @@ from apps.accounts.filters import AccountFilter
 from apps.accounts.models import Account
 from apps.accounts.serializers import (
     BulkCreateAccountTextSerializer,
+    BulkUploadAccountSerializer,
     BuyerAccountSerializer,
     CreateAccountSerializer,
     OwnerAccountSerializer,
@@ -55,6 +56,8 @@ class SellerAccountViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, views
             return BulkCreateAccountTextSerializer
         elif self.action == "create":
             return CreateAccountSerializer
+        elif self.action == "bulk_upload":
+            return BulkUploadAccountSerializer
         return super().get_serializer_class()
 
     def create(self, request, *args, **kwargs):
@@ -94,6 +97,14 @@ class SellerAccountViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, views
         serializer.is_valid(raise_exception=True)
         serializer.save()
         logger.info(f"Bulk account created by {request.user.username}")
+        return Response({"message": "Accounts created successfully!"}, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=["post"], url_path="bulk-upload")
+    def bulk_upload(self, request, *args, **kwargs):
+        """Custom action for bulk Account creation via file upload"""
+        serializer = self.get_serializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()  # Calls bulk_create inside serializer
         return Response({"message": "Accounts created successfully!"}, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"])

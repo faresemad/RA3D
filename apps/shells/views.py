@@ -9,7 +9,13 @@ from rest_framework.response import Response
 
 from apps.shells.filters import ShellFilter
 from apps.shells.models import Shell, ShellStatus
-from apps.shells.serializers import CreateShellSerializer, ShellListSerializer, ShellSerializer
+from apps.shells.serializers import (
+    BulkCreateShellTextSerializer,
+    BulkUploadShellSerializer,
+    CreateShellSerializer,
+    ShellListSerializer,
+    ShellSerializer,
+)
 from apps.utils.permissions import IsOwner, IsSeller
 
 logger = logging.getLogger(__name__)
@@ -28,7 +34,7 @@ class SellerShellViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewset
         "is_deleted",
     )
     serializer_class = ShellSerializer
-    permission_classes = [IsOwner]
+    permission_classes = [IsAuthenticated, IsOwner]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_class = ShellFilter
     ordering_fields = ["created_at"]
@@ -42,6 +48,10 @@ class SellerShellViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewset
     def get_serializer_class(self):
         if self.action == "create":
             return CreateShellSerializer
+        elif self.action == "bulk_create":
+            return BulkCreateShellTextSerializer
+        elif self.action == "bulk_upload":
+            return BulkUploadShellSerializer
         return super().get_serializer_class()
 
     def create(self, request, *args, **kwargs):
@@ -56,6 +66,20 @@ class SellerShellViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewset
             },
             status=status.HTTP_201_CREATED,
         )
+
+    @action(detail=False, methods=["post"], url_path="bulk-create")
+    def bulk_create(self, request, *args, **kwargs):
+        serializer = BulkCreateShellTextSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "Shells created successfully!"}, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=["post"], url_path="bulk-upload")
+    def bulk_upload(self, request, *args, **kwargs):
+        serializer = BulkUploadShellSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({"message": "Shells uploaded successfully!"}, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"], permission_classes=[IsAuthenticated])
     def mark_as_sold(self, request, pk=None):

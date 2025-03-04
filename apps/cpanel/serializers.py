@@ -1,6 +1,7 @@
 import logging
 from decimal import Decimal
 
+import pandas as pd
 from django.db.models.signals import post_save
 from rest_framework import serializers
 
@@ -149,4 +150,137 @@ class BulkCreateCPanelTextSerializer(serializers.Serializer):
             post_save.send(sender=CPanel, instance=instance, created=True)
 
         logger.info(f"Successfully created {len(cpanel_instances)} CPanels")
+        return cpanel_instances
+
+
+class BulkUploadCPanelSerializer(serializers.Serializer):
+    file = serializers.FileField()
+
+    def validate(self, attrs):
+        """Validate and parse the uploaded file."""
+        file = attrs.get("file", None)
+        if not file:
+            raise serializers.ValidationError("No file uploaded.")
+
+        file_extension = file.name.split(".")[-1].lower()
+
+        if file_extension not in ["xlsx", "txt"]:
+            raise serializers.ValidationError("Only .xlsx (Excel) and .txt files are supported.")
+
+        cpanels = []
+        errors = []
+
+        # Read XLSX File
+        if file_extension == "xlsx":
+            try:
+                df = pd.read_excel(file)
+            except Exception as e:
+                raise serializers.ValidationError(f"Error reading Excel file: {str(e)}")
+
+            expected_columns = ["host", "username", "password", "price", "cpanel_type"]
+
+            # Check if all required columns exist
+            if not all(col in df.columns for col in expected_columns):
+                raise serializers.ValidationError(f"Excel file must contain columns: {', '.join(expected_columns)}")
+
+            # Parse each row
+            for index, row in df.iterrows():
+                try:
+                    host = str(row["host"]).strip()
+                    username = str(row["username"]).strip()
+                    password = str(row["password"]).strip()
+                    price = Decimal(row["price"])
+                    cpanel_type = str(row["cpanel_type"]).strip()
+
+                    if price < 1:
+                        errors.append(f"Row {index + 2}: Price must be at least 1")
+
+                    if cpanel_type not in dict(CPanelType.choices):
+                        errors.append(f"Row {index + 2}: Invalid cPanel type '{cpanel_type}'")
+
+                    if not errors:
+                        cpanels.append(
+                            {
+                                "host": host,
+                                "username": username,
+                                "password": password,
+                                "price": price,
+                                "cpanel_type": cpanel_type,
+                                "status": CPanelStatus.UNSOLD,
+                                "ssl": False,
+                                "tld": None,
+                                "hosting": None,
+                                "location": None,
+                                "details": {},
+                            }
+                        )
+
+                except Exception as e:
+                    errors.append(f"Row {index + 2}: {str(e)}")
+
+        # Read TXT File
+        elif file_extension == "txt":
+            try:
+                content = file.read().decode("utf-8").strip()
+                lines = content.split("\n")
+            except Exception:
+                raise serializers.ValidationError("Error reading TXT file. Ensure it's UTF-8 encoded.")
+
+            for index, line in enumerate(lines, start=1):
+                parts = line.split("|")
+                if len(parts) != 5:
+                    errors.append(f"Line {index}: Incorrect number of columns (Expected 5, got {len(parts)})")
+                    continue
+
+                host, username, password, price, cpanel_type = (p.strip() for p in parts)
+
+                try:
+                    price = Decimal(price)
+                    if price < 1:
+                        errors.append(f"Line {index}: Price must be at least 1")
+                except ValueError:
+                    errors.append(f"Line {index}: Invalid price format")
+
+                if cpanel_type not in dict(CPanelType.choices):
+                    errors.append(f"Line {index}: Invalid cPanel type '{cpanel_type}'")
+
+                if not errors:
+                    cpanels.append(
+                        {
+                            "host": host,
+                            "username": username,
+                            "password": password,
+                            "price": price,
+                            "cpanel_type": cpanel_type,
+                            "status": CPanelStatus.UNSOLD,
+                            "ssl": False,
+                            "tld": None,
+                            "hosting": None,
+                            "location": None,
+                            "details": {},
+                        }
+                    )
+
+        if errors:
+            raise serializers.ValidationError({"errors": errors})
+
+        attrs["cpanels"] = cpanels  # ✅ Ensure 'cpanels' key exists
+        return attrs
+
+    def create(self, validated_data):
+        """Bulk create cPanel records and manually trigger post_save signal"""
+        request_user = self.context["request"].user  # Get the user from the request
+        cpanels_data = validated_data["cpanels"]
+
+        # Assign user to all cPanel records
+        for cpanel_data in cpanels_data:
+            cpanel_data["user"] = request_user
+
+        # Bulk create cPanel instances
+        cpanel_instances = CPanel.objects.bulk_create([CPanel(**data) for data in cpanels_data])
+
+        # Manually trigger the post_save signal
+        for instance in cpanel_instances:
+            post_save.send(sender=CPanel, instance=instance, created=True)
+
         return cpanel_instances

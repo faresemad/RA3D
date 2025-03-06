@@ -28,6 +28,8 @@ class SMTP(models.Model):
     smtp_type = models.CharField(max_length=255, choices=SMTPType.choices, default=SMTPType.CREATED)
     status = models.CharField(max_length=255, choices=SmtpStatus.choices, default=SmtpStatus.UNSOLD)
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(1)])
+    hosting = models.CharField(max_length=255, blank=True, null=True)
+    location = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)

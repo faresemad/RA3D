@@ -2,6 +2,7 @@ import logging
 from decimal import Decimal
 
 import pandas as pd
+from django.db.models.signals import post_save
 from rest_framework import serializers
 
 from apps.smtp.models import SMTP, SmtpStatus, SMTPType
@@ -22,6 +23,8 @@ class SmtpListSerializer(serializers.ModelSerializer):
             "user",
             "ip",
             "username",
+            "hosting",
+            "location",
             "port",
             "smtp_type",
             "status",
@@ -46,6 +49,8 @@ class SmtpSerializer(serializers.ModelSerializer):
             "port",
             "username",
             "password",
+            "hosting",
+            "location",
             "smtp_type",
             "status",
             "price",
@@ -143,6 +148,11 @@ class BulkCreateSMTPTextSerializer(serializers.Serializer):
             return {"message": "No new SMTPs were created. All provided SMTPs already exist.", "created_count": 0}
 
         created_smtps = SMTP.objects.bulk_create(new_smtps)
+        logger.info(f"Created {len(created_smtps)} SMTPs")
+
+        # Manually trigger the post_save signal
+        for instance in created_smtps:
+            post_save.send(sender=SMTP, instance=instance, created=True)
 
         return {"message": f"{len(created_smtps)} SMTPs created successfully.", "created_count": len(created_smtps)}
 
@@ -271,5 +281,10 @@ class BulkUploadSMTPSerializer(serializers.Serializer):
             return {"message": "No new SMTPs were created. All provided SMTPs already exist.", "created_count": 0}
 
         created_smtps = SMTP.objects.bulk_create(new_smtps)
+        logger.info(f"Created {len(created_smtps)} SMTPs")
+
+        # Manually trigger the post_save signal
+        for instance in created_smtps:
+            post_save.send(sender=SMTP, instance=instance, created=True)
 
         return {"message": f"{len(created_smtps)} SMTPs created successfully.", "created_count": len(created_smtps)}

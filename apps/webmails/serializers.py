@@ -31,7 +31,7 @@ class CreateWebMailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WebMail
-        exclude = ["status", "is_sold"]
+        exclude = ["status", "is_sold", "location", "hosting"]
 
 
 class BulkCreateWebMailTextSerializer(serializers.Serializer):
@@ -84,6 +84,8 @@ class BulkCreateWebMailTextSerializer(serializers.Serializer):
                         "category": category,
                         "niche": niche,
                         "status": WebMailStatus.UNSOLD,  # Default status to UNSOLD
+                        "location": None,
+                        "hosting": None,
                         "is_sold": False,
                     }
                 )
@@ -184,6 +186,8 @@ class BulkUploadWebMailSerializer(serializers.Serializer):
                                 "category": category,
                                 "niche": niche,
                                 "status": WebMailStatus.UNSOLD,
+                                "location": None,
+                                "hosting": None,
                                 "is_sold": False,
                             }
                         )
@@ -232,6 +236,8 @@ class BulkUploadWebMailSerializer(serializers.Serializer):
                             "category": category,
                             "niche": niche,
                             "status": WebMailStatus.UNSOLD,
+                            "location": None,
+                            "hosting": None,
                             "is_sold": False,
                         }
                     )

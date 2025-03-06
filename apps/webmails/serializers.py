@@ -15,6 +15,14 @@ class WebMailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WebMail
+        exclude = ["updated_at"]
+
+
+class ListWebMailSerializer(serializers.ModelSerializer):
+    user = UserProfileSerializer()
+
+    class Meta:
+        model = WebMail
         exclude = ["updated_at", "username", "password"]
 
 

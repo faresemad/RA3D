@@ -1,7 +1,7 @@
 import logging
 
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
@@ -14,13 +14,14 @@ from apps.webmails.serializers import (
     BulkCreateWebMailTextSerializer,
     BulkUploadWebMailSerializer,
     CreateWebMailSerializer,
+    ListWebMailSerializer,
     WebMailSerializer,
 )
 
 logger = logging.getLogger(__name__)
 
 
-class WebMailViewSet(viewsets.ModelViewSet):
+class SellerWebMailViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
     queryset = (
         WebMail.objects.select_related("user")
         .filter(is_sold=False)
@@ -30,6 +31,8 @@ class WebMailViewSet(viewsets.ModelViewSet):
             "user__picture",
             "domain",
             "price",
+            "username",
+            "password",
             "source",
             "category",
             "niche",
@@ -39,7 +42,7 @@ class WebMailViewSet(viewsets.ModelViewSet):
         )
     )
     serializer_class = WebMailSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsSeller]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_class = WebMailFilter
     ordering_fields = ["created_at"]
@@ -53,11 +56,6 @@ class WebMailViewSet(viewsets.ModelViewSet):
         elif self.action == "bulk_upload":
             return BulkUploadWebMailSerializer
         return super().get_serializer_class()
-
-    def get_permissions(self):
-        if self.action == "create":
-            return [IsSeller()]
-        return super().get_permissions()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -100,3 +98,29 @@ class WebMailViewSet(viewsets.ModelViewSet):
         webmail = self.get_object()
         webmail.mark_as_deleted()
         return Response({"status": "webmail marked as deleted"})
+
+
+class WebMailViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = (
+        WebMail.objects.select_related("user")
+        .filter(is_sold=False)
+        .only(
+            "id",
+            "user__username",
+            "user__picture",
+            "domain",
+            "price",
+            "source",
+            "category",
+            "niche",
+            "status",
+            "is_sold",
+            "created_at",
+        )
+    )
+    serializer_class = ListWebMailSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+    filterset_class = WebMailFilter
+    ordering_fields = ["created_at"]
+    search_fields = ["category", "price", "user__username", "domain"]

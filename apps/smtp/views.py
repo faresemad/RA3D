@@ -22,23 +22,26 @@ logger = logging.getLogger(__name__)
 
 
 class SellerSmtpViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
-    queryset = SMTP.objects.only(
-        "ip",
-        "port",
-        "username",
-        "password",
-        "smtp_type",
-        "status",
-        "price",
-        "created_at",
-        "is_deleted",
-    )
     serializer_class = SmtpSerializer
     permission_classes = [IsAuthenticated, IsOwner]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_class = SmtpFilter
     ordering_fields = ["created_at"]
     search_fields = ["port", "ip", "user__username"]
+
+    def get_queryset(self):
+        queryset = SMTP.objects.only(
+            "ip",
+            "port",
+            "username",
+            "password",
+            "smtp_type",
+            "status",
+            "price",
+            "created_at",
+            "is_deleted",
+        )
+        return queryset.filter(user=self.request.user)
 
     def get_permissions(self):
         if self.action == "create":

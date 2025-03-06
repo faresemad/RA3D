@@ -48,6 +48,28 @@ class SellerWebMailViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, views
     ordering_fields = ["created_at"]
     search_fields = ["category", "price", "user__username", "domain"]
 
+    def get_queryset(self):
+        queryset = (
+            WebMail.objects.select_related("user")
+            .filter(is_sold=False)
+            .only(
+                "id",
+                "user__username",
+                "user__picture",
+                "domain",
+                "price",
+                "username",
+                "password",
+                "source",
+                "category",
+                "niche",
+                "status",
+                "is_sold",
+                "created_at",
+            )
+        )
+        return queryset.filter(user=self.request.user)
+
     def get_serializer_class(self):
         if self.action == "create":
             return CreateWebMailSerializer

@@ -22,23 +22,26 @@ logger = logging.getLogger(__name__)
 
 
 class SellerShellViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
-    queryset = Shell.objects.filter(status=ShellStatus.UNSOLD).only(
-        "shell_url",
-        "shell_type",
-        "status",
-        "price",
-        "ssl",
-        "tld",
-        "details",
-        "created_at",
-        "is_deleted",
-    )
     serializer_class = ShellSerializer
     permission_classes = [IsAuthenticated, IsOwner]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_class = ShellFilter
     ordering_fields = ["created_at"]
     search_fields = ["tld", "user__username"]
+
+    def get_queryset(self):
+        queryset = Shell.objects.filter(status=ShellStatus.UNSOLD).only(
+            "shell_url",
+            "shell_type",
+            "status",
+            "price",
+            "ssl",
+            "tld",
+            "details",
+            "created_at",
+            "is_deleted",
+        )
+        return queryset.filter(user=self.request.user)
 
     def get_permissions(self):
         if self.action == "create":

@@ -53,7 +53,7 @@ class WebMail(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="webmail")
     username = models.CharField(max_length=255)
     password = models.CharField(max_length=255)
-    domain = models.URLField(max_length=255)
+    domain = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(1)])
     source = models.CharField(max_length=255, choices=WebMailType.choices, default=WebMailType.CREATED)
     category = models.CharField(max_length=255, choices=WebMailCategory.choices, default=WebMailCategory.CPANEL)

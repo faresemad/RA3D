@@ -2,6 +2,7 @@ import logging
 from decimal import Decimal
 
 import pandas as pd
+from django.db.models.signals import post_save
 from rest_framework import serializers
 
 from apps.users.api.serializers.profile import UserProfileSerializer
@@ -118,6 +119,11 @@ class BulkCreateWebMailTextSerializer(serializers.Serializer):
             }
 
         created_webmails = WebMail.objects.bulk_create(new_webmails)
+        logger.info(f"Created {len(created_webmails)} WebMails")
+
+        # Manually trigger the post_save signal
+        for instance in created_webmails:
+            post_save.send(sender=WebMail, instance=instance, created=True)
 
         return {
             "message": f"{len(created_webmails)} WebMails created successfully.",
@@ -262,6 +268,11 @@ class BulkUploadWebMailSerializer(serializers.Serializer):
         ]
 
         created_webmails = WebMail.objects.bulk_create(new_webmails)
+        logger.info(f"Created {len(created_webmails)} WebMails")
+
+        # Manually trigger the post_save signal
+        for instance in created_webmails:
+            post_save.send(sender=WebMail, instance=instance, created=True)
 
         return {
             "message": f"{len(created_webmails)} WebMails created successfully.",

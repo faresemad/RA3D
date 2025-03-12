@@ -17,5 +17,4 @@ jobs:
           clean: false
 
       - name: Re-Build and Run Server
-        run: echo "Re-Build and Run Server"
-        # run: sudo systemctl restart buystation.service
+        run: sudo systemctl restart ra3d.service

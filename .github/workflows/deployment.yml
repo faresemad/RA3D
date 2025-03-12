@@ -1,0 +1,21 @@
+name: CD | Production Deployment Ra3d Store
+
+on:
+  push:
+    branches: ["main", "production"]
+    paths-ignore: ["docs/**"]
+  workflow_dispatch:
+
+jobs:
+  deployment:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          clean: false
+
+      - name: Re-Build and Run Server
+        run: echo "Re-Build and Run Server"
+        # run: sudo systemctl restart buystation.service

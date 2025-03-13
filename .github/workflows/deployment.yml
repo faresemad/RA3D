@@ -20,4 +20,4 @@ jobs:
         run: sudo systemctl restart ra3d.service
 
       - name: Deploy to Production
-        run: sudo systemctl restart nginx
+        run: echo "root" | sudo -S systemctl restart nginx

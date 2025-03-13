@@ -17,7 +17,4 @@ jobs:
           clean: false
 
       - name: Re-Build and Run Server
-        run: sudo systemctl restart ra3d.service
-
-      - name: Deploy to Production
-        run: echo "root" | sudo -S systemctl restart nginx
+        run: echo "root" | sudo -S systemctl restart ra3d.service

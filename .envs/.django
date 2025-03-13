@@ -5,7 +5,7 @@ IPYTHONDIR=/app/.ipython
 MODE=DEVELOPMENT
 
 SECRET_KEY=1CwEyFo2MQfkeZ8Jbfax83QKxKKWXCEPPR39mJhfHkWfqZV3sY
-ALLOWED_HOSTS=127.0.0.1,0.0.0.0,localhost,162.213.249.243,api.ra3d.store,www.ra3d.store
+ALLOWED_HOSTS=127.0.0.1,0.0.0.0,localhost,162.213.249.243,api.ra3d.store,www.ra3d.store,backend.ra3d.store,ra3d.store
 ADMIN_URL=admin/
 BASE_URL=https://www.ra3d.store
 

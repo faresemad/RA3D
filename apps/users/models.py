@@ -25,7 +25,7 @@ class CustomUserProfile(AbstractUser):
     last_name = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-    email_confirmed = models.BooleanField(default=False)
+    email_confirmed = models.BooleanField(default=True)  # set it False in Production
     email_verification_code = models.CharField(max_length=6, blank=True, null=True)
     new_email = models.EmailField(blank=True, null=True)
     picture = models.ImageField(upload_to="profile/", blank=True, null=True)

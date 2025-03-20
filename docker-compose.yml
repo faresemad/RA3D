@@ -3,7 +3,6 @@ volumes:
   ra3d_postgres_data_backups: {}
   ra3d_django_media: {}
   ra3d_redis_data: {}
-  smtp4dev_data: {}
 
 services:
   django: &django
@@ -14,7 +13,6 @@ services:
     container_name: ra3d_django
     depends_on:
       - postgres
-      # - smtp4dev
       - redis
     volumes:
       - .:/app:z
@@ -39,17 +37,6 @@ services:
       - ra3d_postgres_data_backups:/backups
     env_file:
       - ./.envs/.postgres
-
-  smtp4dev:
-    image: rnwood/smtp4dev:v3
-    container_name: ra3d_smtp4dev
-    ports:
-      - "3000:80"
-      - "25:25"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-    volumes:
-      - smtp4dev_data:/smtp4dev
 
   redis:
     image: "redis:alpine"

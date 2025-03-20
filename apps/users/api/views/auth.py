@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.contrib.auth import get_user_model, login
 from django.utils.crypto import get_random_string
 from rest_framework import mixins, status, viewsets
@@ -131,7 +132,7 @@ class ResendActivationCode(mixins.CreateModelMixin, viewsets.GenericViewSet):
             activation_code.create_activation_code()
 
             subject = "Your New Activation Code - [RA3D]"
-            from_email = "<my email>"
+            from_email = settings.DEFAULT_FROM_EMAIL
             to_email = [user.email]
             send_email_notification.delay(
                 subject, "activation.html", from_email, to_email, user.username, activation_code.activation_code
@@ -167,7 +168,7 @@ class SignUp(mixins.CreateModelMixin, viewsets.GenericViewSet):
         Sends an activation email to the user with the activation code.
         """
         subject = "Your Activation Code - [RA3D]"
-        from_email = "<my email>"
+        from_email = settings.DEFAULT_FROM_EMAIL
         to_email = [user.email]
         send_email_notification.delay(
             subject, "activation.html", from_email, to_email, user.username, activation_code.activation_code
@@ -259,7 +260,7 @@ class PasswordReset(mixins.CreateModelMixin, viewsets.GenericViewSet):
     def _send_reset_email(self, user):
         """Helper method to send reset email"""
         subject = "Password Reset Code - RA3D"
-        from_email = "<my email>"
+        from_email = settings.DEFAULT_FROM_EMAIL
         to_email = [user.email]
 
         send_email_notification.delay(
@@ -402,7 +403,7 @@ class EmailChange(mixins.CreateModelMixin, viewsets.GenericViewSet):
         user.save(update_fields=["email_verification_code", "new_email"])
 
         subject = "Email Change Verification - RA3D"
-        from_email = "<my email>"
+        from_email = settings.DEFAULT_FROM_EMAIL
         to_email = [new_email]
 
         send_email_notification.delay(

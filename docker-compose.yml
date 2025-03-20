@@ -40,16 +40,16 @@ services:
     env_file:
       - ./.envs/.postgres
 
-  # smtp4dev:
-  #   image: rnwood/smtp4dev:v3
-  #   container_name: ra3d_smtp4dev
-  #   ports:
-  #     - "3000:80"
-  #     - "25:25"
-  #   environment:
-  #     - ASPNETCORE_ENVIRONMENT=Development
-  #   volumes:
-  #     - smtp4dev_data:/smtp4dev
+  smtp4dev:
+    image: rnwood/smtp4dev:v3
+    container_name: ra3d_smtp4dev
+    ports:
+      - "3000:80"
+      - "25:25"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - smtp4dev_data:/smtp4dev
 
   redis:
     image: "redis:alpine"

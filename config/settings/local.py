@@ -65,8 +65,21 @@ SILENCED_SYSTEM_CHECKS = ["drf_spectacular.W001", "drf_spectacular.W002", "field
 
 # In Deployment
 # -----------------------------------------------------------------
-CSRF_TRUSTED_ORIGINS = ["https://api.ra3d.store", "http://api.ra3d.store"]
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_WHITELIST = [
+    "http://localhost:3000",
+    "https://api.ra3d.store",
+    "http://api.ra3d.store",
+    "https://coingate.com",
+]
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "https://api.ra3d.store",
+    "http://api.ra3d.store",
+    "https://coingate.com",
+]
 # CSRF_COOKIE_SECURE = True
 # SECURE_SSL_REDIRECT = True
 # SESSION_COOKIE_SECURE = True

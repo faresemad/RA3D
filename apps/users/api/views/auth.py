@@ -156,38 +156,54 @@ class SignUp(mixins.CreateModelMixin, viewsets.GenericViewSet):
         """
         Creates a new user and an activation code associated with the user.
         """
+        logger.info("Creating new user account")
         user = serializer.save()
+        logger.info(f"User created with ID: {user.id}, email: {user.email}")
+
+        logger.info(f"Generating activation code for user {user.id}")
         activation_code = ActivationCode(user=user)
         activation_code.create_activation_code()
+        logger.info(f"Activation code generated for user {user.id}")
+
         self.send_activation_email(user, activation_code)
-        logger.info(f"User {user.id} signed up successfully")
+        logger.info(f"User {user.id} signup process completed successfully")
         return user
 
     def send_activation_email(self, user, activation_code):
         """
         Sends an activation email to the user with the activation code.
         """
+        logger.info(f"Preparing activation email for user {user.id}")
         subject = "Your Activation Code - [RA3D]"
         from_email = settings.DEFAULT_FROM_EMAIL
         to_email = [user.email]
+
+        logger.info(f"Queuing activation email task for user {user.id}")
         send_email_notification.delay(
             subject, "activation.html", from_email, to_email, user.username, activation_code.activation_code
         )
+        logger.info(f"Activation email queued for user {user.id}")
 
     def create(self, request, *args, **kwargs):
         """
         Handles the sign up request.
         """
-        logger.info("Attempting user sign up")
+        logger.info("Processing new user signup request")
         serializer = self.get_serializer(data=request.data)
+
+        logger.info("Validating signup data")
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data["email"]
 
+        logger.info(f"Checking if email {email} already exists")
         if get_user_model().objects.filter(email=email).exists():
-            logger.warning(f"Sign up attempt with existing email: {email}")
+            logger.warning(f"Signup rejected - email already exists: {email}")
             return Response({"error": "Email already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
+        logger.info(f"Creating new user account for email: {email}")
         user = self.perform_create(serializer)
+
+        logger.info(f"Signup successful for user {user.id}")
         return Response(
             {
                 "success": "Account created, check your email for activation code",

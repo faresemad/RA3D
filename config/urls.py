@@ -12,6 +12,7 @@ urlpatterns = [
 # API patterns for Local Apps
 urlpatterns += [
     path(f"{settings.API_PREFIX}oauth/", include("apps.users.api.urls", namespace="users")),
+    path(f"{settings.API_PREFIX}dashboard/", include("apps.dashboard.urls", namespace="dashboard")),
     path(f"{settings.API_PREFIX}tickets/", include("apps.tickets.urls", namespace="tickets")),
     path(f"{settings.API_PREFIX}accounts/", include("apps.accounts.urls", namespace="accounts")),
     path(f"{settings.API_PREFIX}webmail/", include("apps.webmails.urls", namespace="webmail")),

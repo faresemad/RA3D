@@ -28,6 +28,9 @@ stop:
 logs:
 	docker-compose -f $(COMPOSE_FILE) logs $(filter-out $@,$(MAKECMDGOALS))
 
+tail-logs:
+	docker-compose -f $(COMPOSE_FILE) logs -f --tail=100 $(filter-out $@,$(MAKECMDGOALS))
+
 makemigrations:
 	docker-compose -f $(COMPOSE_FILE) run --rm django python manage.py makemigrations
 

@@ -14,3 +14,4 @@ pylint-django==2.5.5  # https://github.com/PyCQA/pylint-django
 pre-commit==3.5.0  # https://github.com/pre-commit/pre-commit
 uvicorn[standard]
 whitenoise==6.7.0
+django_jazzmin==3.0.1  # https://github.com/farridav/django-jazzmin

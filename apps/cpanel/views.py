@@ -4,7 +4,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -30,7 +30,7 @@ class SellerCPanelViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewse
     filterset_class = CPanelFilter
     ordering_fields = ["created_at"]
     search_fields = ["tld", "user__username"]
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_queryset(self):
         queryset = CPanel.objects.filter(user=self.request.user).only(

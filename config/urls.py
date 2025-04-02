@@ -41,6 +41,6 @@ if settings.DEBUG:
     urlpatterns += (path("__debug__/", include("debug_toolbar.urls")),)
 
 # Catch-all pattern for invalid URLs
-urlpatterns += [
-    path("<path:invalid_path>", TemplateView.as_view(template_name="index.html"), name="404"),
-]
+# urlpatterns += [
+#     path("<path:invalid_path>", TemplateView.as_view(template_name="index.html"), name="404"),
+# ]

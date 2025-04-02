@@ -5,7 +5,7 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
-from django.db import models
+from django.db import models, transaction
 
 logger = logging.getLogger(__name__)
 
@@ -22,26 +22,31 @@ class Wallet(models.Model):
 
     def withdraw(self, amount):
         if not isinstance(amount, Decimal):
-            amount = Decimal(amount)  # Ensure amount is a Decimal
-        if self.balance >= amount:
-            self.balance -= amount
-            self.save()
-            return True
+            amount = Decimal(amount)
+        with transaction.atomic():
+            wallet = Wallet.objects.select_for_update().get(id=self.id)
+            if wallet.balance >= amount:
+                wallet.balance -= amount
+                wallet.save()
+                return True
         return False
 
     def deposit(self, amount):
         if amount <= 0:
             raise ValueError("Amount must be greater than zero.")
         if not isinstance(amount, Decimal):
-            amount = Decimal(amount)  # Ensure amount is a Decimal
-        self.balance += amount
-        self.save()
-        return True
+            amount = Decimal(amount)
+        with transaction.atomic():
+            wallet = Wallet.objects.select_for_update().get(id=self.id)
+            wallet.balance += amount
+            wallet.save()
+            return True
 
     def transfer(self, wallet, amount):
-        if self.withdraw(amount):
-            wallet.deposit(amount)
-            return True
+        with transaction.atomic():
+            if self.withdraw(amount):
+                wallet.deposit(amount)
+                return True
         return False
 
     @property
@@ -112,25 +117,33 @@ class WithdrawalRequest(models.Model):
             raise ValueError("Invalid payment method.")
 
     def approve(self):
-        if self.status == self.Status.PENDING:
-            self.status = self.Status.APPROVED
-            self.save()
+        with transaction.atomic():
+            withdrawal = WithdrawalRequest.objects.select_for_update().get(pk=self.pk)
+            if withdrawal.status == self.Status.PENDING:
+                withdrawal.status = self.Status.APPROVED
+                withdrawal.save()
 
     def reject(self):
-        if self.status == self.Status.PENDING:
-            self.status = self.Status.REJECTED
-            self.save()
+        with transaction.atomic():
+            withdrawal = WithdrawalRequest.objects.select_for_update().get(pk=self.pk)
+            if withdrawal.status == self.Status.PENDING:
+                withdrawal.status = self.Status.REJECTED
+                withdrawal.save()
 
     def _complete(self, transaction_id):
         logger.info(f"Attempting to complete withdrawal {self.id} with transaction ID {transaction_id}")
-        if self.status != self.Status.APPROVED:
-            logger.warning(f"Withdrawal {self.id} is not approved. Current status: {self.status}")
-            return
-        self.status = self.Status.COMPLETED
-        self.transaction_id = transaction_id
-        try:
-            self.user.wallet.withdraw(self.amount)
-            self.save()
-            logger.info(f"Withdrawal {self.id} completed successfully.")
-        except Exception as e:
-            logger.error(f"Error completing withdrawal {self.id}: {e}")
+        with transaction.atomic():
+            withdrawal = WithdrawalRequest.objects.select_for_update().get(pk=self.pk)
+            if withdrawal.status != self.Status.APPROVED:
+                logger.warning(f"Withdrawal {self.id} is not approved. Current status: {self.status}")
+                return
+
+            withdrawal.status = self.Status.COMPLETED
+            withdrawal.transaction_id = transaction_id
+            try:
+                withdrawal.user.wallet.withdraw(withdrawal.amount)
+                withdrawal.save()
+                logger.info(f"Withdrawal {self.id} completed successfully.")
+            except Exception as e:
+                logger.error(f"Error completing withdrawal {self.id}: {e}")
+                raise

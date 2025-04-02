@@ -30,7 +30,7 @@ class SellerShellViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewset
     search_fields = ["tld", "user__username"]
 
     def get_queryset(self):
-        queryset = Shell.objects.filter(status=ShellStatus.UNSOLD).only(
+        queryset = Shell.objects.only(
             "shell_url",
             "shell_type",
             "status",

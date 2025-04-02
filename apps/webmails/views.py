@@ -22,25 +22,6 @@ logger = logging.getLogger(__name__)
 
 
 class SellerWebMailViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
-    queryset = (
-        WebMail.objects.select_related("user")
-        .filter(is_sold=False)
-        .only(
-            "id",
-            "user__username",
-            "user__picture",
-            "domain",
-            "price",
-            "username",
-            "password",
-            "source",
-            "category",
-            "niche",
-            "status",
-            "is_sold",
-            "created_at",
-        )
-    )
     serializer_class = WebMailSerializer
     permission_classes = [IsAuthenticated, IsSeller]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
@@ -49,26 +30,22 @@ class SellerWebMailViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, views
     search_fields = ["category", "price", "user__username", "domain"]
 
     def get_queryset(self):
-        queryset = (
-            WebMail.objects.select_related("user")
-            .filter(is_sold=False)
-            .only(
-                "id",
-                "user__username",
-                "user__picture",
-                "domain",
-                "price",
-                "username",
-                "password",
-                "hosting",
-                "location",
-                "source",
-                "category",
-                "niche",
-                "status",
-                "is_sold",
-                "created_at",
-            )
+        queryset = WebMail.objects.select_related("user").only(
+            "id",
+            "user__username",
+            "user__picture",
+            "domain",
+            "price",
+            "username",
+            "password",
+            "hosting",
+            "location",
+            "source",
+            "category",
+            "niche",
+            "status",
+            "is_sold",
+            "created_at",
         )
         return queryset.filter(user=self.request.user)
 

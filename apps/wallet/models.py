@@ -139,7 +139,32 @@ class WithdrawalRequest(models.Model):
     def __str__(self):
         return f"Withdrawal {self.amount} by {self.user.username} via {self.get_payment_method_display()}"
 
+    def clean_wallet_address(self):
+        """
+        Validate that the wallet address is a valid Bitcoin address.
+        Basic validation checks for length and starting characters.
+        """
+        if self.payment_method == self.PaymentMethod.BITCOIN:
+            address = self.wallet_address
+            if not address:
+                raise ValidationError("Bitcoin wallet address is required.")
+
+            # Basic Bitcoin address validation
+            # Checks if address starts with valid prefixes and has correct length
+            valid_prefixes = ("1", "3", "bc1")
+            if not any(address.startswith(prefix) for prefix in valid_prefixes):
+                raise ValidationError("Invalid Bitcoin address format.")
+
+            if len(address) < 26 or len(address) > 35:
+                raise ValidationError("Invalid Bitcoin address length.")
+
     def save(self, *args, **kwargs):
+        """
+        Custom save method to validate withdrawal request before saving.
+        Calls clean_wallet_address for Bitcoin address validation.
+        """
+        if self.payment_method == self.PaymentMethod.BITCOIN:
+            self.clean_wallet_address()
         if not self.pk:
             self.validate_withdrawal()
         super().save(*args, **kwargs)

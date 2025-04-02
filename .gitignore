@@ -11,7 +11,7 @@ buy-station-2e7b7-firebase-adminsdk-1zv3d-3b3b3b3b3b.json
 
 # Media files
 media
-static
+!static
 staticfiles
 
 # Distribution / packaging

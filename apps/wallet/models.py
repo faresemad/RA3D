@@ -21,6 +21,18 @@ class Wallet(models.Model):
         return f"{self.user.email}"
 
     def withdraw(self, amount):
+        """
+        Withdraw a specified amount from the wallet.
+
+        Ensures the amount is a Decimal and checks if sufficient balance is available.
+        Uses a database transaction to safely update the wallet balance.
+
+        Args:
+            amount (Decimal or numeric): The amount to withdraw from the wallet.
+
+        Returns:
+            bool: True if withdrawal is successful, False otherwise.
+        """
         if not isinstance(amount, Decimal):
             amount = Decimal(amount)
         with transaction.atomic():
@@ -32,6 +44,21 @@ class Wallet(models.Model):
         return False
 
     def deposit(self, amount):
+        """
+        Deposit a specified amount into the wallet.
+
+        Validates the deposit amount and ensures it is a Decimal.
+        Uses a database transaction to safely update the wallet balance.
+
+        Args:
+            amount (Decimal or numeric): The amount to deposit into the wallet.
+
+        Raises:
+            ValueError: If the amount is less than or equal to zero.
+
+        Returns:
+            bool: True if deposit is successful.
+        """
         if amount <= 0:
             raise ValueError("Amount must be greater than zero.")
         if not isinstance(amount, Decimal):
@@ -43,6 +70,19 @@ class Wallet(models.Model):
             return True
 
     def transfer(self, wallet, amount):
+        """
+        Transfer a specified amount from the current wallet to another wallet.
+
+        Uses a database transaction to safely transfer funds between wallets.
+        Attempts to withdraw the amount from the current wallet and deposit it into the target wallet.
+
+        Args:
+            wallet (Wallet): The destination wallet to receive the transferred funds.
+            amount (Decimal or numeric): The amount to transfer between wallets.
+
+        Returns:
+            bool: True if the transfer is successful, False otherwise.
+        """
         with transaction.atomic():
             if self.withdraw(amount):
                 wallet.deposit(amount)
@@ -51,12 +91,21 @@ class Wallet(models.Model):
 
     @property
     def get_balance(self):
+        """
+        Retrieve the current balance of the wallet.
+        """
         return self.balance
 
     def get_transactions(self):
+        """
+        Retrieve all transactions associated with the current wallet.
+        """
         return self.transactions.all()
 
     def get_transaction_count(self):
+        """
+        Retrieve the total number of transactions associated with the current wallet.
+        """
         return self.transactions.count()
 
 
@@ -96,7 +145,16 @@ class WithdrawalRequest(models.Model):
         super().save(*args, **kwargs)
 
     def validate_withdrawal(self):
-        """Validate the withdrawal based on payment method."""
+        """
+        Validate the withdrawal request before saving.
+
+        Performs two key validation checks:
+        1. Ensures the withdrawal amount meets the minimum requirement for the specified payment method.
+        2. Verifies the user has sufficient wallet balance to cover the withdrawal amount plus transaction fees.
+
+        Raises:
+            ValidationError: If withdrawal amount is below the minimum or insufficient funds are available.
+        """
         payment_method = self.payment_method
         amount = self.amount
         min_withdrawal, fee = self.get_min_withdrawal_and_fee(payment_method)
@@ -110,13 +168,29 @@ class WithdrawalRequest(models.Model):
 
     @classmethod
     def get_min_withdrawal_and_fee(cls, payment_method):
-        """Return minimum withdrawal and fee based on the payment method."""
+        """
+        Retrieve the minimum withdrawal amount and transaction fee for a specific payment method.
+
+        Args:
+            payment_method (str): The payment method for the withdrawal.
+        Returns:
+            tuple: A tuple containing the minimum withdrawal amount and transaction fee as Decimal values.
+        Raises:
+            ValueError: If an unsupported payment method is provided.
+        """
         if payment_method == cls.PaymentMethod.BITCOIN:
             return Decimal("100.0"), Decimal("20.0")  # Min withdrawal: 100, Fee: 20
         else:
             raise ValueError("Invalid payment method.")
 
     def approve(self):
+        """
+        Approve a pending withdrawal request by updating its status to APPROVED.
+
+        This method uses a database transaction to safely update the withdrawal status
+        if it is currently in a PENDING state. It ensures atomic updates to prevent
+        race conditions when modifying the withdrawal request.
+        """
         with transaction.atomic():
             withdrawal = WithdrawalRequest.objects.select_for_update().get(pk=self.pk)
             if withdrawal.status == self.Status.PENDING:
@@ -124,6 +198,13 @@ class WithdrawalRequest(models.Model):
                 withdrawal.save()
 
     def reject(self):
+        """
+        Reject a pending withdrawal request by updating its status to REJECTED.
+
+        This method uses a database transaction to safely update the withdrawal status
+        if it is currently in a PENDING state. It ensures atomic updates to prevent
+        race conditions when modifying the withdrawal request.
+        """
         with transaction.atomic():
             withdrawal = WithdrawalRequest.objects.select_for_update().get(pk=self.pk)
             if withdrawal.status == self.Status.PENDING:

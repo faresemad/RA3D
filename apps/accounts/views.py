@@ -153,3 +153,19 @@ class AccountViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     filterset_class = AccountFilter
     ordering_fields = ["created_at"]
     search_fields = ["category", "details", "user__username"]
+
+
+class CountryOfAccounts(viewsets.ViewSet):
+    """
+    View to list all countries of accounts.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = Account.objects.values_list("country", flat=True).distinct().order_by("country")
+        return list(set(queryset))
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        return Response(queryset, status=status.HTTP_200_OK)

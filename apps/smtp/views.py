@@ -129,3 +129,19 @@ class SmtpViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     filterset_class = SmtpFilter
     ordering_fields = ["created_at"]
     search_fields = ["port", "ip", "user__username"]
+
+
+class LocationsOfSmtpViewSet(viewsets.ViewSet):
+    """
+    ViewSet to get all locations of SMTPs.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request):
+        locations = (
+            SMTP.objects.filter(status=SmtpStatus.UNSOLD, location__isnull=False)
+            .values_list("location", flat=True)
+            .distinct()
+        )
+        return Response(locations)

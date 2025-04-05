@@ -158,3 +158,19 @@ class RdpViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         rdp_instance = self.get_object()
         results = check_rdp_port(rdp_instance.ip)
         return Response({"status": results})
+
+
+class LocationsOfRdpViewSet(viewsets.ViewSet):
+    """
+    ViewSet to get all locations of RDPs.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request):
+        locations = (
+            Rdp.objects.filter(status=RdpStatus.UNSOLD, location__isnull=False)
+            .values_list("location", flat=True)
+            .distinct()
+        )
+        return Response(locations)

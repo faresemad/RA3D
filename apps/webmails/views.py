@@ -9,7 +9,7 @@ from rest_framework.response import Response
 
 from apps.utils.permissions import IsSeller
 from apps.webmails.filters import WebMailFilter
-from apps.webmails.models import WebMail
+from apps.webmails.models import WebMail, WebMailStatus
 from apps.webmails.serializers import (
     BulkCreateWebMailTextSerializer,
     BulkUploadWebMailSerializer,
@@ -127,3 +127,19 @@ class WebMailViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     filterset_class = WebMailFilter
     ordering_fields = ["created_at"]
     search_fields = ["category", "price", "user__username", "domain"]
+
+
+class LocationsOfWebmailViewSet(viewsets.ViewSet):
+    """
+    ViewSet to get all locations of Webmails.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request):
+        locations = (
+            WebMail.objects.filter(status=WebMailStatus.UNSOLD, location__isnull=False)
+            .values_list("location", flat=True)
+            .distinct()
+        )
+        return Response(locations)

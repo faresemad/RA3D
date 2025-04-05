@@ -159,3 +159,19 @@ class CPanelViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         cpanel = self.get_object()
         status = check_cpanel_status(cpanel.host)
         return Response(status)
+
+
+class LocationsOfCPanelsViewSet(viewsets.ViewSet):
+    """
+    ViewSet to get all locations of cPanels.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request):
+        locations = (
+            CPanel.objects.filter(status=CPanelStatus.UNSOLD, location__isnull=False)
+            .values_list("location", flat=True)
+            .distinct()
+        )
+        return Response(locations)

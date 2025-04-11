@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from apps.orders.helper.serializers import AccountSerializer, CPanelSerializer, RdpSerializer, ShellSerializer
 from apps.orders.models import Order, PaymentMethod, Transaction
 from apps.services.coingate import CoinGateService
 from apps.services.transaction import TransactionService
@@ -49,6 +50,36 @@ class OrderSerializer(serializers.ModelSerializer):
 
         TransactionService.create_transaction(order, coingate_order, cryptocurrency)
         return order
+
+
+class ListOrderSerializer(serializers.ModelSerializer):
+    account = AccountSerializer()
+    cpanel = CPanelSerializer()
+    rdp = RdpSerializer()
+    shell = ShellSerializer()
+    type_of_order = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Order
+        exclude = ["user"]
+
+    def get_type_of_order(self, obj: Order) -> str:
+        """Get the type of order based on the selected product."""
+        if obj.account:
+            return "account"
+        elif obj.cpanel:
+            return "cpanel"
+        elif obj.rdp:
+            return "rdp"
+        elif obj.shell:
+            return "shell"
+        return None
+
+
+class OrderDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = "__all__"
 
 
 class TransactionSerializer(serializers.ModelSerializer):

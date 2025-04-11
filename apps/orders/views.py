@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.orders.models import Order, Transaction
-from apps.orders.serializers import OrderSerializer, TransactionSerializer
+from apps.orders.serializers import ListOrderSerializer, OrderSerializer, TransactionSerializer
 from apps.services.coingate import CoinGateService
 from apps.services.transaction import TransactionService
 
@@ -28,6 +28,11 @@ class OrderViewSet(
 
     def get_queryset(self):
         return Order.objects.select_related("user", "account", "cpanel", "rdp", "shell").filter(user=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return ListOrderSerializer
+        return OrderSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

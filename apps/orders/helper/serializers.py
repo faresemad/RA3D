@@ -42,3 +42,39 @@ class WebMailSerializer(serializers.ModelSerializer):
     class Meta:
         model = WebMail
         fields = ["id", "domain"]
+
+
+class SecretAccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        exclude = ["user"]
+
+
+class SecretCPanelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CPanel
+        exclude = ["user"]
+
+
+class SecretRdpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rdp
+        exclude = ["user"]
+
+
+class SecretShellSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Shell
+        exclude = ["user"]
+
+
+class SecretSMTPSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SMTP
+        exclude = ["user"]
+
+
+class SecretWebMailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WebMail
+        exclude = ["user"]

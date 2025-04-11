@@ -6,6 +6,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.orders.helper.serializers import (
+    SecretAccountSerializer,
+    SecretCPanelSerializer,
+    SecretRdpSerializer,
+    SecretShellSerializer,
+    SecretSMTPSerializer,
+    SecretWebMailSerializer,
+)
 from apps.orders.models import Order, Transaction
 from apps.orders.serializers import ListOrderSerializer, OrderSerializer, TransactionSerializer
 from apps.services.coingate import CoinGateService
@@ -55,8 +63,24 @@ class OrderViewSet(
     def get_secret_data(self, request, pk=None):
         try:
             order = self.get_object()
-            secret_data = order.get_secret_data()
-            return Response(secret_data, status=status.HTTP_200_OK)
+
+            if order.account:
+                serializer = SecretAccountSerializer(order.account)
+            elif order.cpanel:
+                serializer = SecretCPanelSerializer(order.cpanel)
+            elif order.rdp:
+                serializer = SecretRdpSerializer(order.rdp)
+            elif order.shell:
+                serializer = SecretShellSerializer(order.shell)
+            elif order.smtp:
+                serializer = SecretSMTPSerializer(order.smtp)
+            elif order.webmail:
+                serializer = SecretWebMailSerializer(order.webmail)
+            else:
+                return Response({"detail": "No secret data found."}, status=status.HTTP_204_NO_CONTENT)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
         except Order.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         except Exception as e:

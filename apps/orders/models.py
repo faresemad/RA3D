@@ -8,7 +8,9 @@ from apps.accounts.models import Account
 from apps.cpanel.models import CPanel
 from apps.rdp.models import Rdp
 from apps.shells.models import Shell
+from apps.smtp.models import SMTP
 from apps.wallet.models import Wallet
+from apps.webmails.models import WebMail
 
 User = get_user_model()
 
@@ -35,8 +37,11 @@ class Order(models.Model):
     cpanel = models.ForeignKey(CPanel, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
     rdp = models.ForeignKey(Rdp, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
     shell = models.ForeignKey(Shell, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
+    smtp = models.ForeignKey(SMTP, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
+    webmail = models.ForeignKey(WebMail, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
     total_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(1)])
     status = models.CharField(max_length=255, choices=OrderStatus.choices, default=OrderStatus.PENDING)
+    data = models.JSONField(null=True, blank=True)
     cryptocurrency = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -1,6 +1,13 @@
 from rest_framework import serializers
 
-from apps.orders.helper.serializers import AccountSerializer, CPanelSerializer, RdpSerializer, ShellSerializer
+from apps.orders.helper.serializers import (
+    AccountSerializer,
+    CPanelSerializer,
+    RdpSerializer,
+    ShellSerializer,
+    SMTPSerializer,
+    WebMailSerializer,
+)
 from apps.orders.models import Order, PaymentMethod, Transaction
 from apps.services.coingate import CoinGateService
 from apps.services.transaction import TransactionService
@@ -57,6 +64,8 @@ class ListOrderSerializer(serializers.ModelSerializer):
     cpanel = CPanelSerializer()
     rdp = RdpSerializer()
     shell = ShellSerializer()
+    smtp = SMTPSerializer()
+    webmail = WebMailSerializer()
     type_of_order = serializers.SerializerMethodField()
 
     class Meta:
@@ -73,6 +82,10 @@ class ListOrderSerializer(serializers.ModelSerializer):
             return "rdp"
         elif obj.shell:
             return "shell"
+        elif obj.smtp:
+            return "smtp"
+        elif obj.webmail:
+            return "webmail"
         return None
 
 

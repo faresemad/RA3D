@@ -27,7 +27,9 @@ class OrderViewSet(
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Order.objects.select_related("user", "account", "cpanel", "rdp", "shell").filter(user=self.request.user)
+        return Order.objects.select_related("user", "account", "cpanel", "rdp", "shell", "smtp", "webmail").filter(
+            user=self.request.user
+        )
 
     def get_serializer_class(self):
         if self.action == "list":

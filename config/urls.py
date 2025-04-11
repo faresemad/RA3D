@@ -25,6 +25,7 @@ urlpatterns += [
     path(f"{settings.API_PREFIX}notifications/", include("apps.notifications.urls", namespace="notifications")),
     path(f"{settings.API_PREFIX}orders/", include("apps.orders.urls", namespace="orders")),
     path(f"{settings.API_PREFIX}wallet/", include("apps.wallet.urls", namespace="wallet")),
+    path(f"{settings.API_PREFIX}sellers/", include("apps.sellers.urls", namespace="sellers")),
 ]
 
 # API patterns for Spectacular

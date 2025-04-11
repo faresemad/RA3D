@@ -1,0 +1,50 @@
+import logging
+
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import permissions, serializers, status, viewsets
+from rest_framework.response import Response
+
+from apps.sellers.filters import SellerRequestFilter
+from apps.sellers.models import SellerRequest
+from apps.sellers.serializers import (
+    SellerRequestAdminUpdateSerializer,
+    SellerRequestCreateSerializer,
+    SellerRequestDetailSerializer,
+)
+
+logger = logging.getLogger(__name__)
+
+
+class SellerRequestViewSet(viewsets.ModelViewSet):
+    queryset = SellerRequest.objects.select_related("user").all()
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = SellerRequestFilter
+
+    def get_permissions(self):
+        logger.info(f"Checking permissions for action: {self.action}")
+        if self.action in ["list", "update", "partial_update"]:
+            return [permissions.IsAdminUser()]
+        return [permissions.IsAuthenticated()]
+
+    def get_serializer_class(self):
+        logger.info(f"Getting serializer class for action: {self.action}")
+        if self.action == "create":
+            return SellerRequestCreateSerializer
+        elif self.request.user.is_staff:
+            return SellerRequestAdminUpdateSerializer
+        return SellerRequestDetailSerializer
+
+    def get_queryset(self):
+        logger.info(f"Getting queryset for user: {self.request.user}")
+        if self.request.user.is_staff:
+            return SellerRequest.objects.all()
+        return SellerRequest.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        logger.info(f"Creating seller request for user: {self.request.user}")
+        if SellerRequest.objects.filter(user=self.request.user).exists():
+            logger.warning(f"Duplicate seller request attempt by user: {self.request.user}")
+            raise serializers.ValidationError("You have already submitted a seller request.")
+        serializer.save(user=self.request.user)
+        logger.info(f"Successfully created seller request for user: {self.request.user}")
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

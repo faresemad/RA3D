@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from apps.sellers.filters import SellerRequestFilter
 from apps.sellers.models import SellerRequest
 from apps.sellers.serializers import (
+    ListSellerRequestSerializer,
     SellerRequestAdminUpdateSerializer,
     SellerRequestCreateSerializer,
     SellerRequestDetailSerializer,
@@ -30,7 +31,9 @@ class SellerRequestViewSet(viewsets.ModelViewSet):
         logger.info(f"Getting serializer class for action: {self.action}")
         if self.action == "create":
             return SellerRequestCreateSerializer
-        elif self.request.user.is_staff:
+        elif self.action == "list":
+            return ListSellerRequestSerializer
+        elif self.action in ["update", "partial_update"]:
             return SellerRequestAdminUpdateSerializer
         return SellerRequestDetailSerializer
 

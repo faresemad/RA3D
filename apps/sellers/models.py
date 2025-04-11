@@ -27,6 +27,7 @@ class SellerRequest(models.Model):
 
     def approve(self):
         self.status = self.Status.APPROVED
+        self.admin_comment = "Approved by admin"
         self.user.status = self.user.AccountStatus.SELLER
         self.save()
 

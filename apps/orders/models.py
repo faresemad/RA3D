@@ -56,6 +56,9 @@ class Order(models.Model):
     def __str__(self):
         return f"Order #{self.id}"
 
+    def get_secret_data(self):
+        pass
+
     class Meta:
         ordering = ["-created_at"]
         verbose_name = "Order"

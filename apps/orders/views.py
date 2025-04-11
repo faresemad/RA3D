@@ -1,6 +1,7 @@
 import logging
 
 from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -26,7 +27,7 @@ class OrderViewSet(
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Order.objects.select_related("user", "account", "cpanel", "rdp", "shell").all()
+        return Order.objects.select_related("user", "account", "cpanel", "rdp", "shell").filter(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -42,6 +43,18 @@ class OrderViewSet(
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=["get"], url_path="secret-data")
+    def get_secret_data(self, request, pk=None):
+        try:
+            order = self.get_object()
+            secret_data = order.get_secret_data()
+            return Response(secret_data, status=status.HTTP_200_OK)
+        except Order.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Error retrieving secret data: {str(e)}")
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class CoinGateWebhookView(APIView):

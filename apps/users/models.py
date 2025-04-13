@@ -11,6 +11,8 @@ from apps.users.manager import UserManager
 
 class CustomUserProfile(AbstractUser):
     class AccountStatus(models.TextChoices):
+        ADMIN = "ADMIN", "Admin"
+        MODERATOR = "MODERATOR", "Moderator"
         SELLER = "SELLER", "Seller"
         PENDING_SELLER = "PENDING_SELLER", "Pending Seller"
         BUYER = "BUYER", "Buyer"

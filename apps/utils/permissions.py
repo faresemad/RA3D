@@ -55,3 +55,19 @@ class IsOwner(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         return request.user.is_authenticated and obj.user == request.user
+
+
+class IsAccountAdmin(BaseStatusPermission):
+    """
+    Permission for users with the ADMIN account status.
+    """
+
+    required_status = CustomUserProfile.AccountStatus.ADMIN
+
+
+class IsAccountModerator(BaseStatusPermission):
+    """
+    Permission for users with the Moderator account status.
+    """
+
+    required_status = CustomUserProfile.AccountStatus.MODERATOR

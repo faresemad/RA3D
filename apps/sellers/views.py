@@ -31,6 +31,17 @@ class SellerRequestViewSet(viewsets.ModelViewSet):
             return [IsAccountAdmin()]
         return [permissions.IsAuthenticated()]
 
+    @action(detail=False, methods=["get"])
+    def status(self, request):
+        logger.info(f"Getting status for user: {request.user}")
+        try:
+            seller_request = SellerRequest.objects.get(user=request.user)
+            serializer = SellerRequestDetailSerializer(seller_request)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except SellerRequest.DoesNotExist:
+            logger.warning(f"Seller request not found for user: {request.user}")
+            return Response({"status": "not_found"}, status=status.HTTP_404_NOT_FOUND)
+
     def get_serializer_class(self):
         logger.info(f"Getting serializer class for action: {self.action}")
         if self.action == "create":

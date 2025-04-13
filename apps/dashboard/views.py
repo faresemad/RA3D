@@ -48,7 +48,7 @@ class StatisticsViewSet(viewsets.ViewSet):
     def wallet(self, request: HttpRequest) -> Response:
         """Return the balance of the authenticated user's wallet."""
         wallet = Wallet.objects.filter(user=request.user).first()
-        return Response({"balance": wallet.get_balance() if wallet else 0})
+        return Response({"balance": wallet.balance if wallet else 0})
 
     @action(detail=False, methods=["get"])
     def tickets(self, request: HttpRequest) -> Response:

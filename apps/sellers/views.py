@@ -4,7 +4,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from utils.permissions import IsAccountAdmin
 
 from apps.sellers.filters import SellerRequestFilter
 from apps.sellers.models import SellerRequest
@@ -14,6 +13,7 @@ from apps.sellers.serializers import (
     SellerRequestCreateSerializer,
     SellerRequestDetailSerializer,
 )
+from apps.utils.permissions import IsAccountAdmin
 
 logger = logging.getLogger(__name__)
 

@@ -213,6 +213,9 @@ COINGATE_APP_ID = env("COINGATE_APP_ID")
 COINGATE_API_KEY = env("COINGATE_API_KEY")
 COINGATE_SANDBOX = env("COINGATE_SANDBOX", default=True)
 
+# Pliosio Settings
+PLIOSIO_API_KEY = env("PLIOSIO_API_KEY")
+
 # Logging
 LOGGING = {
     "version": 1,

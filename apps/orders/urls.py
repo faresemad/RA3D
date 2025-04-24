@@ -6,6 +6,7 @@ from apps.orders.views import (
     OrderViewSet,
     PaymentCancelView,
     PaymentSuccessView,
+    PlisioWebhookView,
     TransactionViewSet,
 )
 
@@ -16,7 +17,8 @@ router.register(r"transactions", TransactionViewSet, basename="transactions")
 urlpatterns = router.urls
 
 urlpatterns += [
-    path("webhook/", CoinGateWebhookView.as_view(), name="webhook"),
+    path("webhook/plisio/", PlisioWebhookView.as_view(), name="webhook-plisio"),
+    path("webhook/coingate/", CoinGateWebhookView.as_view(), name="webhook-coingate"),
     path("payment/success/", PaymentSuccessView.as_view(), name="payment-success"),
     path("payment/cancel/", PaymentCancelView.as_view(), name="payment-cancel"),
 ]

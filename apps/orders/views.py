@@ -17,11 +17,13 @@ from apps.orders.helper.serializers import (
 from apps.orders.models import Order, Transaction
 from apps.orders.serializers import ListOrderSerializer, OrderSerializer, TransactionSerializer
 from apps.services.coingate import CoinGateService
+from apps.services.plisio import PlisioService
 from apps.services.transaction import TransactionService
 
 logger = logging.getLogger(__name__)
 
 coingate_service = CoinGateService()
+plisio_service = PlisioService()
 
 
 class OrderViewSet(
@@ -99,6 +101,26 @@ class CoinGateWebhookView(APIView):
 
         try:
             mapped_status = coingate_service.map_payment_status(cg_status)
+            TransactionService.update_transaction_status(transaction_id, mapped_status)
+            return Response(status=status.HTTP_200_OK)
+        except Transaction.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Webhook processing failed: {str(e)}")
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class PlisioWebhookView(APIView):
+    def post(self, request):
+        if not plisio_service.verify_webhook_signature(request.headers, request.body):
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        data = request.data
+        transaction_id = data.get("id")
+        cg_status = data.get("status")
+
+        try:
+            mapped_status = plisio_service.map_payment_status(cg_status)
             TransactionService.update_transaction_status(transaction_id, mapped_status)
             return Response(status=status.HTTP_200_OK)
         except Transaction.DoesNotExist:

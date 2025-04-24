@@ -196,9 +196,8 @@ class WithdrawalRequest(models.Model):
         """
         with transaction.atomic():
             withdrawal = WithdrawalRequest.objects.select_for_update().get(pk=self.pk)
-            if withdrawal.status == self.Status.PENDING:
-                withdrawal.status = self.Status.APPROVED
-                withdrawal.save()
+            withdrawal.status = self.Status.APPROVED
+            withdrawal.save(update_fields=["status"])
 
     def reject(self):
         """
@@ -210,9 +209,8 @@ class WithdrawalRequest(models.Model):
         """
         with transaction.atomic():
             withdrawal = WithdrawalRequest.objects.select_for_update().get(pk=self.pk)
-            if withdrawal.status == self.Status.PENDING:
-                withdrawal.status = self.Status.REJECTED
-                withdrawal.save()
+            withdrawal.status = self.Status.REJECTED
+            withdrawal.save(update_fields=["status"])
 
     def _complete(self, transaction_id):
         logger.info(f"Attempting to complete withdrawal {self.id} with transaction ID {transaction_id}")
@@ -226,7 +224,7 @@ class WithdrawalRequest(models.Model):
             withdrawal.transaction_id = transaction_id
             try:
                 withdrawal.user.wallet.withdraw(withdrawal.amount)
-                withdrawal.save()
+                withdrawal.save(update_fields=["status", "transaction_id"])
                 logger.info(f"Withdrawal {self.id} completed successfully.")
             except Exception as e:
                 logger.error(f"Error completing withdrawal {self.id}: {e}")

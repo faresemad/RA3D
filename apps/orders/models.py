@@ -1,8 +1,10 @@
 import uuid
+from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.utils import timezone
 
 from apps.accounts.models import Account
 from apps.cpanel.models import CPanel
@@ -60,6 +62,14 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order #{self.id}"
+
+    EXPIRATION_MINUTES = 15
+
+    @property
+    def is_expired(self):
+        return self.status == OrderStatus.PENDING and (timezone.now() - self.created_at) > timedelta(
+            minutes=self.EXPIRATION_MINUTES
+        )
 
     class Meta:
         ordering = ["-created_at"]

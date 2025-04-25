@@ -2,7 +2,7 @@ import logging
 
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -91,6 +91,8 @@ class OrderViewSet(
 
 
 class CoinGateWebhookView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
         if not coingate_service.verify_webhook_signature(request.headers, request.body):
             return Response(status=status.HTTP_403_FORBIDDEN)

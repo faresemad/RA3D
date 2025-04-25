@@ -16,6 +16,7 @@ from apps.orders.helper.serializers import (
 )
 from apps.orders.models import Order, Transaction
 from apps.orders.serializers import ListOrderSerializer, OrderSerializer, TransactionSerializer
+from apps.orders.tasks import update_transaction_status
 from apps.services.coingate import CoinGateService
 from apps.services.plisio import PlisioService
 from apps.services.transaction import TransactionService
@@ -107,7 +108,7 @@ class CoinGateWebhookView(APIView):
         try:
             mapped_status = coingate_service.map_payment_status(cg_status)
             logger.info(f"Mapped status: {mapped_status}")
-            TransactionService.update_transaction_status(transaction_id, mapped_status)
+            update_transaction_status.delay(transaction_id, mapped_status)
             logger.info(f"Successfully updated transaction {transaction_id}")
             return Response(status=status.HTTP_200_OK)
         except Transaction.DoesNotExist:

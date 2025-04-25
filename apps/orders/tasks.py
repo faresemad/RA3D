@@ -3,9 +3,11 @@ import logging
 from celery import shared_task
 
 from apps.services.order import OrderServices
+from apps.services.transaction import TransactionService
 
 logger = logging.getLogger(__name__)
 order_services = OrderServices()
+transaction_services = TransactionService()
 
 
 @shared_task
@@ -36,3 +38,19 @@ def delete_expired_orders():
     """
     order_services.delete_expired_orders()
     logger.info("Deleted expired orders successfully.")
+
+
+@shared_task
+def update_transaction_status(transaction_id: str, mapped_status: str):
+    """
+    Updates the status of a transaction using the transaction services.
+
+    This Celery shared task runs the update_transaction_status method from TransactionService
+    and logs a success message after the update.
+
+    Args:
+        transaction_id (str): The ID of the transaction to update
+        mapped_status (str): The new status to set for the transaction
+    """
+    transaction_services.update_transaction_status(transaction_id, mapped_status)
+    logger.info(f"Updated transaction {transaction_id} status to {mapped_status} successfully.")

@@ -12,6 +12,21 @@ logger = logging.getLogger(__name__)
 
 
 class CoinGateService:
+    """
+    A service class for handling CoinGate cryptocurrency payment integrations.
+
+    This class provides methods for creating payment orders, verifying webhook signatures,
+    generating request signatures, and mapping payment statuses between CoinGate and the
+    application's internal transaction status system.
+
+    Attributes:
+        api_key (str): CoinGate API key for authentication
+        sandbox (bool): Flag to determine whether to use sandbox or production environment
+        base_url (str): Base URL for frontend redirects
+        backend_url (str): Backend URL for webhook callbacks
+        api_url (str): CoinGate API endpoint URL
+    """
+
     def __init__(self):
         self.api_key = settings.COINGATE_API_KEY
         self.sandbox = settings.COINGATE_SANDBOX
@@ -23,7 +38,20 @@ class CoinGateService:
 
     def create_order(self, order, cryptocurrency):
         """
-        Create a new CoinGate order for payment processing
+        Create a new payment order with CoinGate for cryptocurrency transactions.
+
+        This method generates a CoinGate order by preparing transaction details,
+        creating a signature, and sending a request to the CoinGate API.
+
+        Args:
+            order (Order): The order object containing transaction details
+            cryptocurrency (str): The cryptocurrency to be used for payment
+
+        Returns:
+            dict or None: CoinGate order response if successful, None otherwise
+
+        Raises:
+            requests.RequestException: If there's an error communicating with the CoinGate API
         """
         try:
             data = {
@@ -60,7 +88,20 @@ class CoinGateService:
     @staticmethod
     def verify_webhook_signature(headers, body):
         """
-        Verify the authenticity of CoinGate webhook requests
+        Verify the signature of a CoinGate webhook request.
+
+        This method compares the received signature from the webhook headers
+        with a generated signature using the CoinGate API key.
+
+        Args:
+            headers (dict): HTTP headers containing the received signature
+            body (bytes): Raw request body used to generate the signature
+
+        Returns:
+            bool: True if signatures match, False otherwise
+
+        Raises:
+            Exception: If signature verification encounters an error
         """
         try:
             received_signature = headers.get("X-Request-Signature", "")
@@ -74,7 +115,19 @@ class CoinGateService:
     @staticmethod
     def generate_signature(data):
         """
-        Generate signature for CoinGate requests
+        Generate a signature for CoinGate API requests using HMAC-SHA256.
+
+        This method creates a signature by concatenating all values from the input data
+        and generating a hexadecimal digest using the CoinGate API key.
+
+        Args:
+            data (dict): A dictionary of request parameters to be signed
+
+        Returns:
+            str: A hexadecimal signature string, or None if signature generation fails
+
+        Raises:
+            Exception: Logs and returns None if signature generation encounters an error
         """
         try:
             message = "".join(str(value) for value in data.values())
@@ -87,7 +140,18 @@ class CoinGateService:
     @staticmethod
     def map_payment_status(coingate_status):
         """
-        Map CoinGate payment statuses to our internal status system
+        Map a CoinGate payment status to the corresponding internal payment status.
+
+        This method translates CoinGate-specific payment statuses into the application's
+        standardized payment status enum, providing a consistent status representation
+        across different payment providers.
+
+        Args:
+            coingate_status (str): The original payment status from CoinGate
+
+        Returns:
+            Transaction.PaymentStatus: The mapped internal payment status, defaulting to FAILED
+            if no matching status is found
         """
         status_mapping = {
             "paid": Transaction.PaymentStatus.COMPLETED,

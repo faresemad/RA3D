@@ -115,3 +115,34 @@ class OrderServices:
         except Order.DoesNotExist:
             logger.error(f"Order with ID {order_id} does not exist.")
             return None
+
+    @staticmethod
+    def handle_order_status(order: Order, status: str):
+        """
+        Handles the order status update and performs necessary actions based on the new status.
+
+        Args:
+            order (Order): The order instance to be updated.
+            status (str): The new status to be set for the order.
+
+        Raises:
+            ValueError: If the provided status is not valid.
+        """
+        if status == OrderStatus.COMPLETED:
+            OrderServices.mark_items_as_sold(order)
+            logger.info(f"Order {order.id} marked as completed.")
+        elif status in [OrderStatus.CANCELLED, OrderStatus.FAILED]:
+            # If the order is cancelled or failed, we need to revert the items to unsold status
+            OrderServices.cancel_order(order)
+            logger.info(f"Order {order.id} marked as cancelled.")
+        else:
+            raise ValueError(f"Invalid order status: {status}")
+
+    @staticmethod
+    def delete_cancelled_orders():
+        """
+        Deletes all orders that are in the CANCELLED status.
+        """
+        cancelled_orders = Order.objects.filter(status=OrderStatus.CANCELLED)
+        cancelled_orders.delete()
+        logger.info(f"Deleted {cancelled_orders.count()} cancelled orders.")

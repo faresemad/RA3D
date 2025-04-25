@@ -106,12 +106,13 @@ class TransactionService:
         if transaction.payment_status == Transaction.PaymentStatus.COMPLETED:
             order.status = OrderStatus.COMPLETED
             order.save()
-            order_service.mark_items_as_sold(order)
+            order_service.handle_order_status(order, OrderStatus.COMPLETED)
             # Credit seller wallet
             WalletService.handle_order_completion(order)
         elif transaction.payment_status == Transaction.PaymentStatus.FAILED:
             order.status = OrderStatus.FAILED
             order.save()
+            order_service.handle_order_status(order, OrderStatus.FAILED)
 
         logger.info(f"Updated order {order.id} to status {order.status}")
         return order

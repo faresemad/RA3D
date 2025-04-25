@@ -3,11 +3,13 @@ import logging
 from django.utils import timezone
 
 from apps.orders.models import OrderStatus, Transaction
+from apps.services.order import OrderServices
 from apps.services.wallet import WalletService
 from apps.wallet.models import Wallet
 
 logger = logging.getLogger(__name__)
 wallet_service = WalletService()
+order_service = OrderServices()
 
 
 class TransactionService:
@@ -104,6 +106,7 @@ class TransactionService:
         if transaction.payment_status == Transaction.PaymentStatus.COMPLETED:
             order.status = OrderStatus.COMPLETED
             order.save()
+            order_service.mark_items_as_sold(order)
             # Credit seller wallet
             WalletService.handle_order_completion(order)
         elif transaction.payment_status == Transaction.PaymentStatus.FAILED:

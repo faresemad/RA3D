@@ -122,6 +122,9 @@ class OrderServices:
             # If the order is cancelled or failed, we need to revert the items to unsold status
             OrderServices.cancel_order(order)
             logger.info(f"Order {order.id} marked as cancelled.")
+        elif status == OrderStatus.PENDING:
+            # If the order is pending, we can do nothing or log it
+            logger.info(f"Order {order.id} is still pending.")
         else:
             raise ValueError(f"Invalid order status: {status}")
 

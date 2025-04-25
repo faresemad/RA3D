@@ -1,6 +1,3 @@
-# services/coingate.py
-import hashlib
-import hmac
 import logging
 
 import requests
@@ -64,13 +61,7 @@ class CoinGateService:
                 "success_url": f"{self.base_url}/payment/success/",
             }
 
-            signature = self.generate_signature(data)
-
-            headers = {
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {self.api_key}",
-                "X-Request-Signature": signature,
-            }
+            headers = {"Authorization": f"Bearer {self.api_key}"}
 
             response = requests.post(self.api_url, headers=headers, data=data)
             response.raise_for_status()
@@ -83,58 +74,6 @@ class CoinGateService:
             return None
         except Exception as e:
             logger.error(f"Unexpected error creating CoinGate order: {str(e)}")
-            return None
-
-    @staticmethod
-    def verify_webhook_signature(headers, body):
-        """
-        Verify the signature of a CoinGate webhook request.
-
-        This method compares the received signature from the webhook headers
-        with a generated signature using the CoinGate API key.
-
-        Args:
-            headers (dict): HTTP headers containing the received signature
-            body (bytes): Raw request body used to generate the signature
-
-        Returns:
-            bool: True if signatures match, False otherwise
-
-        Raises:
-            Exception: If signature verification encounters an error
-        """
-        try:
-            received_signature = headers.get("X-Request-Signature", "")
-            generated_signature = hmac.new(settings.COINGATE_API_KEY.encode(), body, hashlib.sha256).hexdigest()
-
-            return hmac.compare_digest(received_signature, generated_signature)
-        except Exception as e:
-            logger.error(f"Webhook signature verification failed: {str(e)}")
-            return False
-
-    @staticmethod
-    def generate_signature(data):
-        """
-        Generate a signature for CoinGate API requests using HMAC-SHA256.
-
-        This method creates a signature by concatenating all values from the input data
-        and generating a hexadecimal digest using the CoinGate API key.
-
-        Args:
-            data (dict): A dictionary of request parameters to be signed
-
-        Returns:
-            str: A hexadecimal signature string, or None if signature generation fails
-
-        Raises:
-            Exception: Logs and returns None if signature generation encounters an error
-        """
-        try:
-            message = "".join(str(value) for value in data.values())
-            signature = hmac.new(settings.COINGATE_API_KEY.encode(), message.encode(), hashlib.sha256).hexdigest()
-            return signature
-        except Exception as e:
-            logger.error(f"Signature generation failed: {str(e)}")
             return None
 
     @staticmethod

@@ -98,10 +98,6 @@ class CoinGateWebhookView(APIView):
         logger.debug(f"Request headers: {request.headers}")
         logger.debug(f"Request body: {request.body}")
 
-        if not coingate_service.verify_webhook_signature(request.headers, request.body):
-            logger.warning("Invalid webhook signature")
-            return Response(status=status.HTTP_403_FORBIDDEN)
-
         data = request.data
         logger.info(f"CoinGate webhook data: {data}")
         transaction_id = data.get("id")

@@ -94,18 +94,28 @@ class CoinGateWebhookView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        logger.info("Received CoinGate webhook request")
+        logger.debug(f"Request headers: {request.headers}")
+        logger.debug(f"Request body: {request.body}")
+
         if not coingate_service.verify_webhook_signature(request.headers, request.body):
+            logger.warning("Invalid webhook signature")
             return Response(status=status.HTTP_403_FORBIDDEN)
 
         data = request.data
+        logger.info(f"CoinGate webhook data: {data}")
         transaction_id = data.get("id")
         cg_status = data.get("status")
+        logger.info(f"Processing transaction ID: {transaction_id} with status: {cg_status}")
 
         try:
             mapped_status = coingate_service.map_payment_status(cg_status)
+            logger.info(f"Mapped status: {mapped_status}")
             TransactionService.update_transaction_status(transaction_id, mapped_status)
+            logger.info(f"Successfully updated transaction {transaction_id}")
             return Response(status=status.HTTP_200_OK)
         except Transaction.DoesNotExist:
+            logger.error(f"Transaction not found: {transaction_id}")
             return Response(status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             logger.error(f"Webhook processing failed: {str(e)}")

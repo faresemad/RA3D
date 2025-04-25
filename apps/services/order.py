@@ -139,7 +139,7 @@ class OrderServices:
             raise ValueError(f"Invalid order status: {status}")
 
     @staticmethod
-    def delete_cancelled_orders():
+    def delete_expired_orders():
         """
         Deletes all orders that are in the CANCELLED status.
         """

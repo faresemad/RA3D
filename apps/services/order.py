@@ -61,23 +61,17 @@ class OrderServices:
         This should be called when order is completed.
         """
         if order.account:
-            order.account.is_sold = True
-            order.account.save()
+            order.account.mark_as_sold()
         if order.cpanel:
-            order.cpanel.is_sold = True
-            order.cpanel.save()
+            order.cpanel.mark_as_sold()
         if order.rdp:
-            order.rdp.is_sold = True
-            order.rdp.save()
+            order.rdp.mark_as_sold()
         if order.shell:
-            order.shell.is_sold = True
-            order.shell.save()
+            order.shell.mark_as_sold()
         if order.smtp:
-            order.smtp.is_sold = True
-            order.smtp.save()
+            order.smtp.mark_as_sold()
         if order.webmail:
-            order.webmail.is_sold = True
-            order.webmail.save()
+            order.webmail.mark_as_sold()
 
         logger.info(f"Marked items as sold for order {order.id}")
 

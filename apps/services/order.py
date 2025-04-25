@@ -60,18 +60,11 @@ class OrderServices:
         Marks the ordered items (account, cpanel, rdp, etc.) as sold or not available anymore.
         This should be called when order is completed.
         """
-        if order.account:
-            order.account.mark_as_sold()
-        if order.cpanel:
-            order.cpanel.mark_as_sold()
-        if order.rdp:
-            order.rdp.mark_as_sold()
-        if order.shell:
-            order.shell.mark_as_sold()
-        if order.smtp:
-            order.smtp.mark_as_sold()
-        if order.webmail:
-            order.webmail.mark_as_sold()
+        items_to_mark = [order.account, order.cpanel, order.rdp, order.shell, order.smtp, order.webmail]
+
+        for item in items_to_mark:
+            if item:
+                item.mark_as_sold()
 
         logger.info(f"Marked items as sold for order {order.id}")
 

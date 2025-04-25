@@ -22,4 +22,8 @@ app.conf.beat_schedule = {
         "task": "apps.orders.tasks.cancel_expired_orders",
         "schedule": crontab(minute="*/15"),
     },
+    "delete-expired-orders": {
+        "task": "apps.orders.tasks.delete_expired_orders",
+        "schedule": crontab(hour=0, minute=0),
+    },
 }

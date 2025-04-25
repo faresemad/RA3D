@@ -207,6 +207,7 @@ AUTHENTICATION_BACKENDS = [
 
 # GetHost
 BASE_URL = env("BASE_URL", default="http://localhost:8000")
+BACKEND_URL = env("BACKEND_URL", default="http://localhost:8000")
 
 # CoinGate Settings
 COINGATE_APP_ID = env("COINGATE_APP_ID")

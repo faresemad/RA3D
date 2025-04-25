@@ -16,6 +16,7 @@ class CoinGateService:
         self.api_key = settings.COINGATE_API_KEY
         self.sandbox = settings.COINGATE_SANDBOX
         self.base_url = settings.BASE_URL
+        self.backend_url = settings.BACKEND_URL
         self.api_url = (
             "https://api-sandbox.coingate.com/v2/orders" if self.sandbox else "https://api.coingate.com/v2/orders"
         )
@@ -31,7 +32,7 @@ class CoinGateService:
                 "price_amount": float(order.total_price),
                 "price_currency": "USD",
                 "receive_currency": cryptocurrency,
-                "callback_url": f"{self.base_url}/webhook/coingate/",
+                "callback_url": f"{self.backend_url}/api/orders/webhook/coingate/",
                 "cancel_url": f"{self.base_url}/payment/cancel/",
                 "success_url": f"{self.base_url}/payment/success/",
             }

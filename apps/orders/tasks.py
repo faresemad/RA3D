@@ -1,29 +1,23 @@
 import logging
-from datetime import timedelta
 
 from celery import shared_task
-from django.utils import timezone
 
-from apps.orders.models import Order, OrderStatus
+from apps.services.order import OrderServices
 
 logger = logging.getLogger(__name__)
+order_services = OrderServices()
 
 
 @shared_task
 def cancel_expired_orders():
     """
-    Cancels orders that have exceeded their expiration time.
+    Cancels orders that have expired using the order services.
 
-    This Celery task finds all pending orders that have been created longer than the defined
-    expiration time and automatically changes their status to CANCELLED. Each cancelled order
-    is logged for tracking purposes.
+    This Celery shared task runs the cancel_expired_orders method from OrderServices
+    and logs a success message after cancellation.
 
-    Runs periodically to clean up and manage order lifecycle.
+    Task is designed to be triggered periodically to clean up and manage
+    expired/stale orders in the system.
     """
-    expiration_time = timezone.now() - timedelta(minutes=Order.EXPIRATION_MINUTES)
-    expired_orders = Order.objects.filter(status=OrderStatus.PENDING, created_at__lt=expiration_time)
-
-    for order in expired_orders:
-        order.status = OrderStatus.CANCELLED
-        order.save()
-        logger.info(f"Canceled expired order {order.id}")
+    order_services.cancel_expired_orders()
+    logger.info("Cancelled expired orders successfully.")

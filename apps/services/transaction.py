@@ -90,7 +90,8 @@ class TransactionService:
             transaction.save()
 
             logger.info(f"Updated transaction {transaction_id} to status {new_status}")
-            return TransactionService.handle_order_status_update(transaction)
+            TransactionService.handle_order_status_update(transaction)
+            return True
         except Transaction.DoesNotExist:
             logger.error(f"Transaction {transaction_id} not found")
             raise

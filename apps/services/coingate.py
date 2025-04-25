@@ -20,7 +20,6 @@ class CoinGateService:
         self.api_url = (
             "https://api-sandbox.coingate.com/v2/orders" if self.sandbox else "https://api.coingate.com/v2/orders"
         )
-        self.headers = {"Authorization": f"Bearer {self.api_key}"}
 
     def create_order(self, order, cryptocurrency):
         """
@@ -37,7 +36,15 @@ class CoinGateService:
                 "success_url": f"{self.base_url}/payment/success/",
             }
 
-            response = requests.post(self.api_url, headers=self.headers, data=data)
+            signature = self.generate_signature(data)
+
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.api_key}",
+                "X-Request-Signature": signature,
+            }
+
+            response = requests.post(self.api_url, headers=headers, data=data)
             response.raise_for_status()
 
             logger.info(f"Created CoinGate order for Order {order.id}")
@@ -63,6 +70,19 @@ class CoinGateService:
         except Exception as e:
             logger.error(f"Webhook signature verification failed: {str(e)}")
             return False
+
+    @staticmethod
+    def generate_signature(data):
+        """
+        Generate signature for CoinGate requests
+        """
+        try:
+            message = "".join(str(value) for value in data.values())
+            signature = hmac.new(settings.COINGATE_API_KEY.encode(), message.encode(), hashlib.sha256).hexdigest()
+            return signature
+        except Exception as e:
+            logger.error(f"Signature generation failed: {str(e)}")
+            return None
 
     @staticmethod
     def map_payment_status(coingate_status):

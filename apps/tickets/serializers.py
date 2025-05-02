@@ -5,17 +5,20 @@ from apps.tickets.models import ReasonChoices, StatusChoices, Ticket, TicketResp
 
 
 class TicketResponseSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    user = serializers.SerializerMethodField()
 
     class Meta:
         model = TicketResponse
         fields = ["id", "user", "message", "created_at", "updated_at"]
         read_only_fields = ["user", "created_at", "updated_at"]
 
+    def get_user(self, obj: TicketResponse):
+        return obj.user.username if obj.user else None
+
 
 class TicketSerializer(serializers.ModelSerializer):
     responses = TicketResponseSerializer(many=True, read_only=True)
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    user = serializers.SerializerMethodField()
     reason = serializers.ChoiceField(choices=ReasonChoices.choices)
     status = serializers.ChoiceField(choices=StatusChoices.choices, read_only=True)
 
@@ -23,3 +26,6 @@ class TicketSerializer(serializers.ModelSerializer):
         model = Ticket
         fields = ["id", "user", "title", "reason", "message", "status", "closed_at", "created_at", "responses"]
         read_only_fields = ["status", "closed_at", "created_at"]
+
+    def get_user(self, obj: Ticket):
+        return obj.user.username if obj.user else None

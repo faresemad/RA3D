@@ -16,16 +16,26 @@ class TicketResponseSerializer(serializers.ModelSerializer):
         return obj.user.username if obj.user else None
 
 
-class TicketSerializer(serializers.ModelSerializer):
-    responses = TicketResponseSerializer(many=True, read_only=True)
+class BaseTicketSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
     reason = serializers.ChoiceField(choices=ReasonChoices.choices)
     status = serializers.ChoiceField(choices=StatusChoices.choices, read_only=True)
 
     class Meta:
         model = Ticket
-        fields = ["id", "user", "title", "reason", "message", "status", "closed_at", "created_at", "responses"]
-        read_only_fields = ["status", "closed_at", "created_at"]
+        fields = ["id", "user", "title", "reason", "message", "status"]
+        read_only_fields = ["status"]
 
     def get_user(self, obj: Ticket):
         return obj.user.username if obj.user else None
+
+
+class TicketDetailsSerializer(BaseTicketSerializer):
+    responses = TicketResponseSerializer(many=True, read_only=True)
+
+    class Meta(BaseTicketSerializer.Meta):
+        fields = BaseTicketSerializer.Meta.fields + ["responses"]
+
+
+class TicketListSerializer(BaseTicketSerializer):
+    pass

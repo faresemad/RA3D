@@ -8,7 +8,7 @@ from rest_framework.response import Response
 
 from apps.tickets.models import Ticket, TicketResponse
 from apps.tickets.permissions import IsOwnerOrStaff, IsTicketParticipantOrStaff
-from apps.tickets.serializers import TicketResponseSerializer, TicketSerializer
+from apps.tickets.serializers import TicketDetailsSerializer, TicketListSerializer, TicketResponseSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -20,19 +20,28 @@ class TicketViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
-    serializer_class = TicketSerializer
+    serializer_class = TicketDetailsSerializer
     permission_classes = [IsAuthenticated, IsOwnerOrStaff]
 
     def get_queryset(self):
         queryset = Ticket.objects.select_related("user").prefetch_related("responses__user")
 
         is_staff_or_support = (
-            self.request.user.status == "SUPPORT" or self.request.user.is_staff or self.request.user.is_superuser
+            self.request.user.status in ["SUPPORT", "ADMIN"]
+            or self.request.user.is_staff
+            or self.request.user.is_superuser
         )
 
         if is_staff_or_support:
             return queryset
         return queryset.filter(user=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return TicketListSerializer
+        elif self.action == "retrieve":
+            return TicketDetailsSerializer
+        return super().get_serializer_class()
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

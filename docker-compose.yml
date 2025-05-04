@@ -45,11 +45,14 @@ services:
       - "6379:6379"
     volumes:
       - ra3d_redis_data:/data
+    command: redis-server --save 60 1 --loglevel warning
+    restart: unless-stopped
 
   celeryworker:
     <<: *django
     image: ra3d_celeryworker
     container_name: ra3d_celeryworker
+    restart: unless-stopped
     depends_on:
       - redis
       - postgres

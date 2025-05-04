@@ -56,7 +56,11 @@ class OrderViewSet(
             order = serializer.instance
             transaction = Transaction.objects.select_related("order").get(order=order)
             return Response(
-                {"order_id": str(order.id), "payment_url": transaction.payment_url},
+                {
+                    "order_id": str(order.id),
+                    "payment_url": transaction.payment_url,
+                    "reservation_expires": order.reservation_expires,
+                },
                 status=status.HTTP_201_CREATED,
             )
         except Exception as e:

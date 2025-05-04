@@ -3,7 +3,7 @@ import logging
 from django.utils import timezone
 
 from apps.orders.models import OrderStatus, Transaction
-from apps.services.order import OrderServices
+from apps.services.order import OrderServices, ReservationService
 from apps.services.wallet import WalletService
 from apps.wallet.models import Wallet
 
@@ -106,11 +106,14 @@ class TransactionService:
 
         if transaction.payment_status == Transaction.PaymentStatus.COMPLETED:
             order.status = OrderStatus.COMPLETED
+            order.is_reserved = False
             order.save()
             # Credit seller wallet
             WalletService.handle_order_completion(order)
         elif transaction.payment_status == Transaction.PaymentStatus.FAILED:
+            ReservationService._release_order_products(order)
             order.status = OrderStatus.FAILED
+            order.is_reserved = False
             order.save()
 
         order_service.handle_order_status(order, order.status)

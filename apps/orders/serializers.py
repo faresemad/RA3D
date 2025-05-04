@@ -10,6 +10,7 @@ from apps.orders.helper.serializers import (
 )
 from apps.orders.models import Order, PaymentMethod, Transaction
 from apps.services.coingate import CoinGateService
+from apps.services.order import ReservationService
 from apps.services.transaction import TransactionService
 
 coingate_service = CoinGateService()
@@ -60,9 +61,16 @@ class OrderSerializer(serializers.ModelSerializer):
         # Create the order first
         order = Order.objects.create(**validated_data, cryptocurrency=cryptocurrency)
 
+        try:
+            ReservationService.reserve_products(order)
+        except ValueError as e:
+            order.delete()
+            raise serializers.ValidationError(str(e))
+
         # Now create the transaction using the service
         coingate_order = coingate_service.create_order(order, cryptocurrency)
         if not coingate_order:
+            ReservationService._release_order_products(order)
             order.delete()
             raise serializers.ValidationError("Payment gateway error")
 

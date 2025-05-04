@@ -2,7 +2,7 @@ import logging
 
 from celery import shared_task
 
-from apps.services.order import OrderServices
+from apps.services.order import OrderServices, ReservationService
 from apps.services.transaction import TransactionService
 
 logger = logging.getLogger(__name__)
@@ -54,3 +54,18 @@ def update_transaction_status(transaction_id: str, mapped_status: str):
     """
     transaction_services.update_transaction_status(transaction_id, mapped_status)
     logger.info(f"Updated transaction {transaction_id} status to {mapped_status} successfully.")
+
+
+@shared_task
+def release_expired_reservations():
+    """
+    Releases expired reservations using the ReservationService.
+
+    This Celery shared task runs the release_expired_reservations method from ReservationService
+    and logs a success message after releasing expired reservations.
+
+    Task is designed to be triggered periodically to clean up and manage
+    expired/stale reservations in the system.
+    """
+    ReservationService.release_expired_reservations()
+    logger.info("Released expired reservations successfully.")

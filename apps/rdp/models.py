@@ -61,6 +61,7 @@ class Rdp(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
     is_deleted = models.BooleanField(default=False)
+    is_available = models.BooleanField(default=True)
 
     class Meta:
         ordering = ["-created_at"]

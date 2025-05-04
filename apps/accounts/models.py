@@ -51,6 +51,7 @@ class Account(models.Model):
     proof = models.URLField(validators=[URLValidator(regex=r"^https?:\/\/((?:vgy\.me|prnt\.sc|gyazo\.com)\/.*)")])
     status = models.CharField(max_length=255, choices=AccountStatus.choices, default=AccountStatus.UNSOLD)
     is_sold = models.BooleanField(default=False)
+    is_available = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -47,6 +47,9 @@ class Order(models.Model):
     cryptocurrency = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    reserved_at = models.DateTimeField(null=True, blank=True)
+    reservation_expires = models.DateTimeField(null=True, blank=True)
+    is_reserved = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         self.total_price = 0

@@ -136,3 +136,133 @@ class OrderServices:
         cancelled_orders = Order.objects.filter(status=OrderStatus.CANCELLED)
         cancelled_orders.delete()
         logger.info(f"Deleted {cancelled_orders.count()} cancelled orders.")
+
+
+class ReservationService:
+    """
+    A service class for managing product reservations in an order system.
+
+    This class handles the reservation of products for an order, including:
+    - Reserving products for a specific duration
+    - Checking reservation validity
+    - Releasing expired reservations
+    - Releasing individual order products
+
+    Attributes:
+        RESERVATION_DURATION (timedelta): The default duration for product reservations (15 minutes).
+    """
+
+    RESERVATION_DURATION = timedelta(minutes=15)
+
+    @classmethod
+    def reserve_products(cls, order: Order) -> None:
+        """
+        Reserves products for a given order within a single transaction.
+
+        This method attempts to reserve all products associated with an order by:
+        - Checking product availability
+        - Marking the order as reserved
+        - Setting reservation expiration time
+        - Updating product availability status
+
+        Args:
+            order (Order): The order for which products are to be reserved.
+
+        Raises:
+            ValueError: If any product in the order is not available.
+
+        Side effects:
+            - Updates order reservation status
+            - Marks associated products as unavailable
+            - Logs reservation details
+        """
+        with transaction.atomic():
+            products = []
+            for field in ["account", "cpanel", "rdp", "shell", "smtp", "webmail"]:
+                if product := getattr(order, field):
+                    product = product.__class__.objects.select_for_update().get(pk=product.pk)
+                    if not product.is_available:
+                        logger.error(f"Product {field} is not available for order {order.id}")
+                        raise ValueError(f"Product {field} is not available")
+                    products.append(product)
+
+            now = timezone.now()
+            order.is_reserved = True
+            order.reserved_at = now
+            order.reservation_expires = now + cls.RESERVATION_DURATION
+            order.save()
+            logger.info(f"Order {order.id} reserved successfully until {order.reservation_expires}")
+
+            for product in products:
+                product.is_available = False
+                product.save()
+                logger.info(f"Product {product.id} marked as reserved for order {order.id}")
+
+    @classmethod
+    def check_reservation(cls, order: Order) -> bool:
+        """
+        Checks the reservation status of an order.
+
+        Verifies if an order is currently reserved and not expired.
+
+        Args:
+            order (Order): The order to check for active reservation.
+
+        Returns:
+            bool: True if the order is reserved and the reservation is still valid, False otherwise.
+
+        Logs:
+            - Debug message indicating reservation status
+            - Debug message with specific reservation validity
+        """
+        if not order.is_reserved:
+            logger.debug(f"Order {order.id} is not reserved")
+            return False
+        is_valid = timezone.now() < order.reservation_expires
+        logger.debug(f"Order {order.id} reservation status: {'valid' if is_valid else 'expired'}")
+        return is_valid
+
+    @classmethod
+    def release_expired_reservations(cls):
+        """
+        Releases reservations for orders that have exceeded their reservation time.
+
+        Finds and processes all orders with expired reservations:
+        - Identifies orders where reservation has passed current time
+        - Releases associated products back to available status
+        - Resets order's reserved status
+        - Logs details of expired reservations processed
+
+        Performs operations within a database transaction to ensure data consistency.
+        """
+        expired_orders = Order.objects.filter(is_reserved=True, reservation_expires__lt=timezone.now())
+        logger.info(f"Found {expired_orders.count()} expired reservations")
+
+        for order in expired_orders:
+            with transaction.atomic():
+                order = Order.objects.select_for_update().get(pk=order.pk)
+                if order.is_reserved and order.reservation_expires < timezone.now():
+                    cls._release_order_products(order)
+                    order.is_reserved = False
+                    order.save()
+                    logger.info(f"Released expired reservation for order {order.id}")
+
+    @classmethod
+    def _release_order_products(cls, order: Order) -> None:
+        """
+        Releases products associated with a given order back to available status.
+
+        Iterates through specific product types (account, cpanel, rdp, shell, smtp, webmail)
+        and updates their availability if they are associated with the order.
+
+        Args:
+            order (Order): The order whose products are to be released.
+
+        Side effects:
+            - Updates product availability status in the database
+            - Logs information about each released product
+        """
+        for field in ["account", "cpanel", "rdp", "shell", "smtp", "webmail"]:
+            if product := getattr(order, field):
+                product.__class__.objects.filter(pk=product.pk).update(is_available=True)
+                logger.info(f"Released product {product.id} from order {order.id}")

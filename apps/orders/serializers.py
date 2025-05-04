@@ -29,6 +29,8 @@ class OrderSerializer(serializers.ModelSerializer):
             "cpanel",
             "rdp",
             "shell",
+            "smtp",
+            "webmail",
             "total_price",
             "status",
             "cryptocurrency",
@@ -39,7 +41,16 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         # Keep your existing validation
-        if not any([attrs.get("account"), attrs.get("cpanel"), attrs.get("rdp"), attrs.get("shell")]):
+        if not any(
+            [
+                attrs.get("account"),
+                attrs.get("cpanel"),
+                attrs.get("rdp"),
+                attrs.get("shell"),
+                attrs.get("smtp"),
+                attrs.get("webmail"),
+            ]
+        ):
             raise serializers.ValidationError("At least one product must be selected.")
         return attrs
 

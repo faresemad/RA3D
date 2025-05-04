@@ -26,4 +26,8 @@ app.conf.beat_schedule = {
         "task": "apps.orders.tasks.delete_expired_orders",
         "schedule": crontab(hour=0, minute=0),
     },
+    "release-expired-reservations": {
+        "task": "apps.orders.tasks.release_expired_reservations",
+        "schedule": crontab(minute="*/5"),
+    },
 }

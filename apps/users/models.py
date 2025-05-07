@@ -46,6 +46,30 @@ class CustomUserProfile(AbstractUser):
     def __str__(self):
         return self.email
 
+    def update_status(self, status):
+        if status not in self.AccountStatus:
+            raise ValueError("Invalid status")
+        self.status = status
+        self.save()
+
+    def make_seller(self):
+        self.update_status(self.AccountStatus.SELLER)
+
+    def make_moderator(self):
+        self.update_status(self.AccountStatus.MODERATOR)
+
+    def make_admin(self):
+        self.update_status(self.AccountStatus.ADMIN)
+
+    def make_support(self):
+        self.update_status(self.AccountStatus.SUPPORT)
+
+    def make_buyer(self):
+        self.update_status(self.AccountStatus.BUYER)
+
+    def make_pending_seller(self):
+        self.update_status(self.AccountStatus.PENDING_SELLER)
+
     def suspend(self, reason, duration_days=2):
         self.status = (
             self.AccountStatus.SELLER_SUSPENDED

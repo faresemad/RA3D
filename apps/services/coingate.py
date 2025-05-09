@@ -63,7 +63,7 @@ class CoinGateService:
                 "description": f"Payment for Order #{order.id}",
             }
 
-            headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
+            headers = {"Authorization": f"Bearer {self.api_key}"}
 
             response = requests.post(self.api_url, headers=headers, data=data)
             response.raise_for_status()

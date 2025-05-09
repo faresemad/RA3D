@@ -2,6 +2,6 @@
 
 set -o errexit
 set -o nounset
+set -o pipefail
 
-
-exec watchfiles --filter python celery.__main__.main --args '-A config.celery_app worker -l INFO -B'
+exec watchfiles --filter python celery.__main__.main --args '-A config.celery_app worker -l INFO -B --concurrency=3 --pool=threads --max-tasks-per-child=1 --max-memory-per-child=1000000'

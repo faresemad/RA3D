@@ -3,7 +3,7 @@ import logging
 import requests
 from django.conf import settings
 
-from apps.orders.models import Transaction
+from apps.orders.models import Order, Transaction
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class CoinGateService:
             "https://api-sandbox.coingate.com/v2/orders" if self.sandbox else "https://api.coingate.com/v2/orders"
         )
 
-    def create_order(self, order, cryptocurrency):
+    def create_order(self, order: Order, cryptocurrency):
         """
         Create a new payment order with CoinGate for cryptocurrency transactions.
 
@@ -59,9 +59,11 @@ class CoinGateService:
                 "callback_url": f"{self.backend_url}/api/orders/webhook/coingate/",
                 "cancel_url": f"{self.base_url}/payment/cancel/",
                 "success_url": f"{self.base_url}/payment/success/",
+                "title": f"Order #{order.id}",
+                "description": f"Payment for Order #{order.id}",
             }
 
-            headers = {"Authorization": f"Bearer {self.api_key}"}
+            headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
 
             response = requests.post(self.api_url, headers=headers, data=data)
             response.raise_for_status()
@@ -71,6 +73,8 @@ class CoinGateService:
 
         except requests.RequestException as e:
             logger.error(f"CoinGate API Error: {str(e)}")
+            if hasattr(e.response, "text"):
+                logger.error(f"CoinGate API Error Details: {e.response.text}")
             return None
         except Exception as e:
             logger.error(f"Unexpected error creating CoinGate order: {str(e)}")

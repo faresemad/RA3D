@@ -65,7 +65,7 @@ class CoinGateService:
 
             headers = {"Authorization": f"Bearer {self.api_key}"}
 
-            response = requests.post(self.api_url, headers=headers, data=data)
+            response = requests.post(self.api_url, headers=headers, data=data, timeout=10)
             response.raise_for_status()
 
             logger.info(f"Created CoinGate order for Order {order.id}")

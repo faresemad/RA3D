@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import serializers
 
 from apps.orders.helper.serializers import (
@@ -14,6 +16,7 @@ from apps.services.order import ReservationService
 from apps.services.transaction import TransactionService
 
 coingate_service = CoinGateService()
+logger = logging.getLogger(__name__)
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -64,6 +67,7 @@ class OrderSerializer(serializers.ModelSerializer):
         try:
             ReservationService.reserve_products(order)
         except ValueError as e:
+            logger.error(f"Error reserving products: {e}")
             order.delete()
             raise serializers.ValidationError(str(e))
 
@@ -72,6 +76,7 @@ class OrderSerializer(serializers.ModelSerializer):
         if not coingate_order:
             ReservationService._release_order_products(order)
             order.delete()
+            logger.error("Failed to create order in CoinGate")
             raise serializers.ValidationError("Payment gateway error")
 
         TransactionService.create_transaction(order, coingate_order, cryptocurrency)

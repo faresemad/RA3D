@@ -61,6 +61,10 @@ class Order(models.Model):
             self.total_price += self.rdp.price
         if self.shell:
             self.total_price += self.shell.price
+        if self.smtp:
+            self.total_price += self.smtp.price
+        if self.webmail:
+            self.total_price += self.webmail.price
         super().save(*args, **kwargs)
 
     def __str__(self):

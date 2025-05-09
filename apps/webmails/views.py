@@ -7,7 +7,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from apps.utils.permissions import IsSeller
+from apps.utils.permissions import IsOwner, IsSeller
 from apps.webmails.filters import WebMailFilter
 from apps.webmails.models import WebMail, WebMailStatus
 from apps.webmails.serializers import (
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 class SellerWebMailViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
     serializer_class = WebMailSerializer
-    permission_classes = [IsAuthenticated, IsSeller]
+    permission_classes = [IsOwner, IsAuthenticated]
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_class = WebMailFilter
     ordering_fields = ["created_at"]
@@ -57,6 +57,11 @@ class SellerWebMailViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, views
         elif self.action == "bulk_upload":
             return BulkUploadWebMailSerializer
         return super().get_serializer_class()
+
+    def get_permissions(self):
+        if self.action == "create":
+            self.permission_classes = [IsSeller]
+        return super().get_permissions()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

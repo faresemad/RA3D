@@ -1,7 +1,10 @@
 import uuid
 
-from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
+
+from apps.users.models import CustomUserProfile
+from apps.wallet.models import Wallet
 
 
 class SellerRequest(models.Model):
@@ -11,7 +14,7 @@ class SellerRequest(models.Model):
         REJECTED = "REJECTED", "Rejected"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="seller_request")
+    user = models.OneToOneField(CustomUserProfile, on_delete=models.CASCADE, related_name="seller_request")
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
     national_id = models.ImageField(upload_to="national_id/")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -27,12 +30,27 @@ class SellerRequest(models.Model):
 
     def approve(self):
         self.status = self.Status.APPROVED
-        self.admin_comment = "Approved by admin"
-        self.user.status = self.user.AccountStatus.SELLER
+        self._update_seller_status(CustomUserProfile.AccountStatus.SELLER)
+        self._create_wallet_for_seller()
+        self.save(update_fields=["status"])
+
+    def reject(self):
+        self.status = self.Status.REJECTED
+        self._update_seller_status(CustomUserProfile.AccountStatus.BUYER)
+        self.save(update_fields=["status"])
+
+    def _update_seller_status(self, status):
+        self.user.status = status
+        self.user.save()
         self.save()
 
-    def reject(self, comment=None):
-        self.status = self.Status.REJECTED
-        self.admin_comment = comment
-        self.user.status = self.user.AccountStatus.BUYER
-        self.save()
+    def _create_wallet_for_seller(self):
+        try:
+            Wallet.objects.get(user=self.user)
+        except ObjectDoesNotExist:
+            Wallet.objects.create(user=self.user)
+
+    def delete(self, using=None, keep_parents=False):
+        self.user.status = CustomUserProfile.AccountStatus.BUYER
+        self.user.save()
+        super().delete(using, keep_parents)

@@ -100,7 +100,7 @@ class Wallet(models.Model):
         """
         Retrieve all transactions associated with the current wallet.
         """
-        return self.transactions.select_related("order").all()
+        return self.transactions.select_related("order").all().order_by("-created_at")
 
     def get_transaction_count(self):
         """

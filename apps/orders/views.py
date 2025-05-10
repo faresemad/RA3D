@@ -38,8 +38,10 @@ class OrderViewSet(
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Order.objects.select_related("user", "account", "cpanel", "rdp", "shell", "smtp", "webmail").filter(
-            user=self.request.user
+        return (
+            Order.objects.select_related("user", "account", "cpanel", "rdp", "shell", "smtp", "webmail")
+            .filter(user=self.request.user)
+            .order_by("-created_at")
         )
 
     def get_serializer_class(self):

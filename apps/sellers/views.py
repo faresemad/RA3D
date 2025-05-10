@@ -19,7 +19,11 @@ logger = logging.getLogger(__name__)
 
 
 class SellerRequestViewSet(viewsets.ModelViewSet):
-    queryset = SellerRequest.objects.select_related("user").all()
+    queryset = (
+        SellerRequest.objects.select_related("user")
+        .exclude(status=SellerRequest.Status.APPROVED)
+        .order_by("-created_at")
+    )
     filter_backends = [DjangoFilterBackend]
     filterset_class = SellerRequestFilter
 

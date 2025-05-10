@@ -52,19 +52,8 @@ class Order(models.Model):
     is_reserved = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
-        self.total_price = 0
-        if self.account:
-            self.total_price += self.account.price
-        if self.cpanel:
-            self.total_price += self.cpanel.price
-        if self.rdp:
-            self.total_price += self.rdp.price
-        if self.shell:
-            self.total_price += self.shell.price
-        if self.smtp:
-            self.total_price += self.smtp.price
-        if self.webmail:
-            self.total_price += self.webmail.price
+        items = [self.account, self.cpanel, self.rdp, self.shell, self.smtp, self.webmail]
+        self.total_price = sum(item.price for item in items if item)
         super().save(*args, **kwargs)
 
     def __str__(self):

@@ -14,7 +14,7 @@ from apps.orders.helper.serializers import (
     SecretSMTPSerializer,
     SecretWebMailSerializer,
 )
-from apps.orders.models import Order, Transaction
+from apps.orders.models import Order, OrderStatus, Transaction
 from apps.orders.serializers import ListOrderSerializer, OrderSerializer, TransactionSerializer
 from apps.orders.tasks import update_transaction_status
 from apps.services.coingate import CoinGateService
@@ -70,6 +70,8 @@ class OrderViewSet(
     def get_secret_data(self, request, pk=None):
         try:
             order = self.get_object()
+            if order.status != OrderStatus.COMPLETED:
+                return Response({"detail": "Order is not completed."}, status=status.HTTP_400_BAD_REQUEST)
 
             if order.account:
                 serializer = SecretAccountSerializer(order.account)

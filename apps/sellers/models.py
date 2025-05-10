@@ -28,13 +28,21 @@ class SellerRequest(models.Model):
         verbose_name_plural = "Seller Requests"
         ordering = ["-created_at"]
 
-    def approve(self):
+    def approve(self, comment=None):
+        if comment:
+            self.admin_comment = comment
+        else:
+            self.admin_comment = "Your request has been approved."
         self.status = self.Status.APPROVED
         self._update_seller_status(CustomUserProfile.AccountStatus.SELLER)
         self._create_wallet_for_seller()
         self.save(update_fields=["status"])
 
-    def reject(self):
+    def reject(self, comment=None):
+        if comment:
+            self.admin_comment = comment
+        else:
+            self.admin_comment = "Your request has been rejected."
         self.status = self.Status.REJECTED
         self._update_seller_status(CustomUserProfile.AccountStatus.BUYER)
         self.save(update_fields=["status"])

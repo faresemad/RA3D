@@ -123,3 +123,11 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = "__all__"
+
+
+class TransactionHistorySerializer(serializers.ModelSerializer):
+    order = serializers.StringRelatedField()
+
+    class Meta:
+        model = Transaction
+        fields = ["id", "order", "cryptocurrency", "amount", "payment_status", "created_at"]

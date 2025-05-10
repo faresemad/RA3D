@@ -92,13 +92,15 @@ class Transaction(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="transactions")
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name="transactions")
-    transaction_id = models.CharField(max_length=255, unique=True)
+    transaction_id = models.CharField(max_length=255, unique=True, db_index=True)
     cryptocurrency = models.CharField(max_length=50, choices=Cryptocurrency.choices, default=Cryptocurrency.BTC)
     amount = models.DecimalField(max_digits=20, decimal_places=8)
-    payment_status = models.CharField(max_length=50, choices=PaymentStatus.choices, default=PaymentStatus.PENDING)
+    payment_status = models.CharField(
+        max_length=50, choices=PaymentStatus.choices, default=PaymentStatus.PENDING, db_index=True
+    )
     payment_date = models.DateTimeField(null=True, blank=True)
     payment_url = models.URLField(max_length=500, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):

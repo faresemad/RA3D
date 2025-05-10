@@ -40,7 +40,7 @@ class WalletService:
         return False
 
     @staticmethod
-    def get_transaction_history(wallet):
+    def get_transaction_history(wallet: Wallet):
         """Get transaction history for a user's wallet"""
         return wallet.get_transactions()
 

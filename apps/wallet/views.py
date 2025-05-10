@@ -7,6 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 
+from apps.orders.serializers import TransactionHistorySerializer
 from apps.services.wallet import WalletService
 from apps.utils.permissions import IsSupport
 from apps.wallet.models import Wallet, WithdrawalRequest
@@ -36,14 +37,20 @@ class WalletViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=["get"], url_path="transaction-history")
     def transaction_history(self, request: HttpRequest):
         wallet = WalletService.get_wallet(request.user)
-        transactions = WalletService.get_transaction_history(wallet)
+        queryset = WalletService.get_transaction_history(wallet)
 
-        page = self.paginate_queryset(transactions)
+        status = request.query_params.get("status")
+        if status:
+            queryset = queryset.filter(payment_status=status.upper())
+
+        queryset = queryset.order_by("-created_at")
+
+        page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
+            serializer = TransactionHistorySerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(transactions, many=True)
+        serializer = TransactionHistorySerializer(queryset, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=["get"], url_path="transaction-count")

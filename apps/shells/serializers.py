@@ -43,6 +43,15 @@ class ShellListSerializer(serializers.ModelSerializer):
         ]
 
 
+class BulkCreateShellSerializer(serializers.ListSerializer):
+    """Serializer to handle bulk creation of shells."""
+
+    def create(self, validated_data):
+        # Create multiple Shell objects at once
+        shells = [Shell(**data) for data in validated_data]
+        return Shell.objects.bulk_create(shells)
+
+
 class CreateShellSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
@@ -55,3 +64,4 @@ class CreateShellSerializer(serializers.ModelSerializer):
             "shell_type",
             "price",
         ]
+        list_serializer_class = BulkCreateShellSerializer

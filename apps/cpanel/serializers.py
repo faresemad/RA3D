@@ -52,6 +52,15 @@ class OwnerCPanelSerializer(serializers.ModelSerializer):
         ]
 
 
+class BulkCreateCPanelSerializer(serializers.ListSerializer):
+    """Serializer to handle bulk creation of cpanels."""
+
+    def create(self, validated_data):
+        # Create multiple CPanel objects at once
+        cpanels = [CPanel(**data) for data in validated_data]
+        return CPanel.objects.bulk_create(cpanels)
+
+
 class CreateCPanelSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
@@ -65,3 +74,4 @@ class CreateCPanelSerializer(serializers.ModelSerializer):
             "price",
             "cpanel_type",
         ]
+        list_serializer_class = BulkCreateCPanelSerializer

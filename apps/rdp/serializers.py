@@ -63,6 +63,15 @@ class RdpListSerializer(serializers.ModelSerializer):
         return f"{obj.username[:2]}***"
 
 
+class BulkCreateRdpSerializer(serializers.ListSerializer):
+    """Serializer to handle bulk creation of rdps."""
+
+    def create(self, validated_data):
+        # Create multiple Rdp objects at once
+        rdps = [Rdp(**data) for data in validated_data]
+        return Rdp.objects.bulk_create(rdps)
+
+
 class CreateRdpSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
@@ -80,3 +89,4 @@ class CreateRdpSerializer(serializers.ModelSerializer):
             "windows_type",
             "access_type",
         ]
+        list_serializer_class = BulkCreateRdpSerializer

@@ -56,6 +56,15 @@ class SmtpSerializer(serializers.ModelSerializer):
         ]
 
 
+class BulkCreateSMTPSerializer(serializers.ListSerializer):
+    """Serializer to handle bulk creation of smtps."""
+
+    def create(self, validated_data):
+        # Create multiple SMTPs objects at once
+        smtps = [SMTP(**data) for data in validated_data]
+        return SMTP.objects.bulk_create(smtps)
+
+
 class CreateSmtpSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
@@ -71,3 +80,4 @@ class CreateSmtpSerializer(serializers.ModelSerializer):
             "smtp_type",
             "price",
         ]
+        list_serializer_class = BulkCreateSMTPSerializer

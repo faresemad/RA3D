@@ -10,13 +10,7 @@ from rest_framework.response import Response
 from apps.utils.permissions import IsOwner, IsSeller
 from apps.webmails.filters import WebMailFilter
 from apps.webmails.models import WebMail, WebMailStatus
-from apps.webmails.serializers import (
-    BulkCreateWebMailTextSerializer,
-    BulkUploadWebMailSerializer,
-    CreateWebMailSerializer,
-    ListWebMailSerializer,
-    WebMailSerializer,
-)
+from apps.webmails.serializers import CreateWebMailSerializer, ListWebMailSerializer, WebMailSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -52,10 +46,6 @@ class SellerWebMailViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, views
     def get_serializer_class(self):
         if self.action == "create":
             return CreateWebMailSerializer
-        elif self.action == "bulk_create":
-            return BulkCreateWebMailTextSerializer
-        elif self.action == "bulk_upload":
-            return BulkUploadWebMailSerializer
         return super().get_serializer_class()
 
     def get_permissions(self):
@@ -72,20 +62,6 @@ class SellerWebMailViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, views
             {"status": "success", "message": "WebMail created successfully"},
             status=status.HTTP_201_CREATED,
         )
-
-    @action(detail=False, methods=["post"], url_path="bulk-create")
-    def bulk_create(self, request, *args, **kwargs):
-        serializer = BulkCreateWebMailTextSerializer(data=request.data, context={"request": request})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response({"message": "WebMail created successfully!"}, status=status.HTTP_201_CREATED)
-
-    @action(detail=False, methods=["post"], url_path="bulk-upload")
-    def bulk_upload(self, request, *args, **kwargs):
-        serializer = BulkUploadWebMailSerializer(data=request.data, context={"request": request})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response({"message": "WebMail uploaded successfully!"}, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"])
     def mark_as_sold(self, request, pk=None):

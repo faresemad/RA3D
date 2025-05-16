@@ -10,13 +10,7 @@ from rest_framework.response import Response
 
 from apps.rdp.filters import RdpFilter
 from apps.rdp.models import Rdp, RdpStatus
-from apps.rdp.serializers import (
-    BulkCreateRdpTextSerializer,
-    BulkUploadRdpSerializer,
-    CreateRdpSerializer,
-    RdpListSerializer,
-    RdpSerializer,
-)
+from apps.rdp.serializers import CreateRdpSerializer, RdpListSerializer, RdpSerializer
 from apps.rdp.utils import check_ip_blacklist, check_rdp_port
 from apps.utils.permissions import IsOwner, IsSeller
 
@@ -60,10 +54,6 @@ class SellerRdpViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.
     def get_serializer_class(self):
         if self.action == "create":
             return CreateRdpSerializer
-        elif self.action == "bulk_upload":
-            return BulkUploadRdpSerializer
-        elif self.action == "bulk_create":
-            return BulkCreateRdpTextSerializer
         return super().get_serializer_class()
 
     def create(self, request, *args, **kwargs):
@@ -78,22 +68,6 @@ class SellerRdpViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.
             },
             status=status.HTTP_201_CREATED,
         )
-
-    @action(detail=False, methods=["post"], url_path="bulk-create")
-    def bulk_create(self, request, *args, **kwargs):
-        """Custom action for bulk RDP creation via textarea input"""
-        serializer = self.get_serializer(data=request.data, context={"request": request})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()  # Calls bulk_create inside serializer
-        return Response({"message": "RDPs created successfully!"}, status=status.HTTP_201_CREATED)
-
-    @action(detail=False, methods=["post"], url_path="bulk-upload")
-    def bulk_upload(self, request, *args, **kwargs):
-        """Custom action for bulk RDP creation via file upload"""
-        serializer = self.get_serializer(data=request.data, context={"request": request})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()  # Calls bulk_create inside serializer
-        return Response({"message": "RDPs created successfully!"}, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"])
     def mark_as_sold(self, request, pk=None):

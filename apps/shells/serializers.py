@@ -1,5 +1,6 @@
 import logging
 
+from django.db.models.signals import post_save
 from rest_framework import serializers
 
 from apps.shells.models import Shell
@@ -49,7 +50,13 @@ class BulkCreateShellSerializer(serializers.ListSerializer):
     def create(self, validated_data):
         # Create multiple Shell objects at once
         shells = [Shell(**data) for data in validated_data]
-        return Shell.objects.bulk_create(shells)
+        shells_instances = Shell.objects.bulk_create(shells)
+        logger.debug("Triggering post_save signals")
+        for instance in shells_instances:
+            post_save.send(sender=Shell, instance=instance, created=True)
+
+        logger.info(f"Successfully created {len(shells_instances)} Shells")
+        return shells_instances
 
 
 class CreateShellSerializer(serializers.ModelSerializer):

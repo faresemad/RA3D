@@ -1,5 +1,6 @@
 import logging
 
+from django.db.models.signals import post_save
 from rest_framework import serializers
 
 from apps.cpanel.models import CPanel
@@ -58,7 +59,13 @@ class BulkCreateCPanelSerializer(serializers.ListSerializer):
     def create(self, validated_data):
         # Create multiple CPanel objects at once
         cpanels = [CPanel(**data) for data in validated_data]
-        return CPanel.objects.bulk_create(cpanels)
+        cpanel_instances = CPanel.objects.bulk_create(cpanels)
+        logger.debug("Triggering post_save signals")
+        for instance in cpanel_instances:
+            post_save.send(sender=CPanel, instance=instance, created=True)
+
+        logger.info(f"Successfully created {len(cpanel_instances)} CPanels")
+        return cpanel_instances
 
 
 class CreateCPanelSerializer(serializers.ModelSerializer):

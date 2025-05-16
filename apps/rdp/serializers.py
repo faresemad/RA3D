@@ -1,5 +1,6 @@
 import logging
 
+from django.db.models.signals import post_save
 from rest_framework import serializers
 
 from apps.rdp.models import Rdp
@@ -69,7 +70,14 @@ class BulkCreateRdpSerializer(serializers.ListSerializer):
     def create(self, validated_data):
         # Create multiple Rdp objects at once
         rdps = [Rdp(**data) for data in validated_data]
-        return Rdp.objects.bulk_create(rdps)
+        rdp_instances = Rdp.objects.bulk_create(rdps)
+
+        logger.debug("Triggering post_save signals")
+        for instance in rdp_instances:
+            post_save.send(sender=Rdp, instance=instance, created=True)
+
+        logger.info(f"Successfully created {len(rdp_instances)} RDPs")
+        return rdp_instances
 
 
 class CreateRdpSerializer(serializers.ModelSerializer):

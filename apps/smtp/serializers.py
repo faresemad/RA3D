@@ -1,5 +1,6 @@
 import logging
 
+from django.db.models.signals import post_save
 from rest_framework import serializers
 
 from apps.smtp.models import SMTP
@@ -62,7 +63,14 @@ class BulkCreateSMTPSerializer(serializers.ListSerializer):
     def create(self, validated_data):
         # Create multiple SMTPs objects at once
         smtps = [SMTP(**data) for data in validated_data]
-        return SMTP.objects.bulk_create(smtps)
+        smtps_instances = SMTP.objects.bulk_create(smtps)
+
+        logger.debug("Triggering post_save signals")
+        for instance in smtps_instances:
+            post_save.send(sender=SMTP, instance=instance, created=True)
+
+        logger.info(f"Successfully created {len(smtps_instances)} SMTPs")
+        return smtps_instances
 
 
 class CreateSmtpSerializer(serializers.ModelSerializer):

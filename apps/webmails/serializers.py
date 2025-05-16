@@ -1,5 +1,6 @@
 import logging
 
+from django.db.models.signals import post_save
 from rest_framework import serializers
 
 from apps.users.api.serializers.profile import UserProfileSerializer
@@ -30,7 +31,14 @@ class BulkCreateWebMailSerializer(serializers.ListSerializer):
     def create(self, validated_data):
         # Create multiple WebMail objects at once
         webmails = [WebMail(**data) for data in validated_data]
-        return WebMail.objects.bulk_create(webmails)
+        webmails_instances = WebMail.objects.bulk_create(webmails)
+
+        logger.debug("Triggering post_save signals")
+        for instance in webmails_instances:
+            post_save.send(sender=WebMail, instance=instance, created=True)
+
+        logger.info(f"Successfully created {len(webmails_instances)} Webmails")
+        return webmails_instances
 
 
 class CreateWebMailSerializer(serializers.ModelSerializer):

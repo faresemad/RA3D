@@ -20,7 +20,7 @@ class IsSeller(BaseStatusPermission):
     Permission for users with the SELLER account status.
     """
 
-    required_status = CustomUserProfile.AccountStatus.SELLER or CustomUserProfile.AccountStatus.ADMIN
+    required_status = CustomUserProfile.AccountStatus.SELLER
 
 
 class IsBuyer(BaseStatusPermission):
@@ -36,7 +36,7 @@ class IsSupport(BaseStatusPermission):
     Permission for users with the SUPPORT account status.
     """
 
-    required_status = CustomUserProfile.AccountStatus.SUPPORT or CustomUserProfile.AccountStatus.ADMIN
+    required_status = CustomUserProfile.AccountStatus.SUPPORT
 
 
 class IsOwnerOrAdmin(BasePermission):

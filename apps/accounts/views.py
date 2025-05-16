@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from apps.accounts.filters import AccountFilter
 from apps.accounts.models import Account
 from apps.accounts.serializers import BuyerAccountSerializer, CreateAccountSerializer, OwnerAccountSerializer
-from apps.utils.permissions import IsOwner, IsSeller
+from apps.utils.permissions import IsAccountAdmin, IsOwner, IsSeller
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +42,7 @@ class SellerAccountViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, views
 
     def get_permissions(self):
         if self.action == "create":
-            return [IsSeller()]
+            return [(IsAccountAdmin | IsSeller)()]
         return super().get_permissions()
 
     def get_serializer_class(self):

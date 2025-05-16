@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from apps.shells.filters import ShellFilter
 from apps.shells.models import Shell, ShellStatus
 from apps.shells.serializers import CreateShellSerializer, ShellListSerializer, ShellSerializer
-from apps.utils.permissions import IsOwner, IsSeller
+from apps.utils.permissions import IsAccountAdmin, IsOwner, IsSeller
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class SellerShellViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewset
 
     def get_permissions(self):
         if self.action == "create":
-            return [IsSeller()]
+            return [(IsAccountAdmin | IsSeller)()]
         return super().get_permissions()
 
     def get_serializer_class(self):

@@ -12,7 +12,7 @@ from apps.rdp.filters import RdpFilter
 from apps.rdp.models import Rdp, RdpStatus
 from apps.rdp.serializers import CreateRdpSerializer, RdpListSerializer, RdpSerializer
 from apps.rdp.utils import check_ip_blacklist, check_rdp_port
-from apps.utils.permissions import IsOwner, IsSeller
+from apps.utils.permissions import IsAccountAdmin, IsOwner, IsSeller
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class SellerRdpViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.
 
     def get_permissions(self):
         if self.action == "create":
-            return [IsSeller()]
+            return [(IsAccountAdmin | IsSeller)()]
         return super().get_permissions()
 
     def get_serializer_class(self):

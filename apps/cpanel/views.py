@@ -12,7 +12,7 @@ from apps.cpanel.filters import CPanelFilter
 from apps.cpanel.models import CPanel, CPanelStatus
 from apps.cpanel.serializers import CreateCPanelSerializer, OwnerCPanelSerializer, UserCPanelSerializer
 from apps.cpanel.utils import check_cpanel_status
-from apps.utils.permissions import IsOwner, IsSeller
+from apps.utils.permissions import IsAccountAdmin, IsOwner, IsSeller
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ class SellerCPanelViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewse
 
     def get_permissions(self):
         if self.action == "create":
-            self.permission_classes = [IsSeller]
+            self.permission_classes = [IsSeller | IsAccountAdmin]
         return super().get_permissions()
 
     def get_serializer_class(self):

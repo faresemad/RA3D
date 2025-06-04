@@ -54,7 +54,10 @@ class SellerWebMailViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, views
         return super().get_permissions()
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        if isinstance(request.data, list):
+            serializer = self.get_serializer(data=request.data, many=True)
+        else:
+            serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         logger.info(f"WebMail created by {request.user.username} with id {serializer.instance.id}")

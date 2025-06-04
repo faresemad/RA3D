@@ -48,7 +48,10 @@ class SellerShellViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewset
         return super().get_serializer_class()
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        if isinstance(request.data, list):
+            serializer = self.get_serializer(data=request.data, many=True)
+        else:
+            serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         logger.info(f"Shell created by {request.user.username}")

@@ -60,7 +60,7 @@ class SellerWebMailViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, views
             serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        logger.info(f"WebMail created by {request.user.username} with id {serializer.instance.id}")
+        logger.info(f"WebMail created by {request.user.username}")
         return Response(
             {"status": "success", "message": "WebMail created successfully"},
             status=status.HTTP_201_CREATED,

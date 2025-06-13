@@ -13,6 +13,7 @@ from apps.sellers.serializers import (
     SellerRequestCreateSerializer,
     SellerRequestDetailSerializer,
 )
+from apps.utils.notification import send_notification
 from apps.utils.permissions import IsAccountAdmin
 
 logger = logging.getLogger(__name__)
@@ -67,6 +68,7 @@ class SellerRequestViewSet(viewsets.ModelViewSet):
             logger.warning(f"Duplicate seller request attempt by user: {self.request.user}")
             raise serializers.ValidationError("You have already submitted a seller request.")
         serializer.save(user=self.request.user)
+        send_notification(user=self.request.user, message="Successfully created seller request")
         logger.info(f"Successfully created seller request for user: {self.request.user}")
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -76,6 +78,7 @@ class SellerRequestViewSet(viewsets.ModelViewSet):
         seller_request = self.get_object()
         seller_request.approve()
         logger.info(f"Seller request with ID: {pk} approved")
+        send_notification(user=seller_request.user, message="Your seller request is approved")
         return Response({"status": "approved"}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"])
@@ -84,4 +87,5 @@ class SellerRequestViewSet(viewsets.ModelViewSet):
         seller_request = self.get_object()
         seller_request.reject(comment="Rejected by admin")
         logger.info(f"Seller request with ID: {pk} rejected")
+        send_notification(user=seller_request.user, message="Your seller request is rejected")
         return Response({"status": "rejected"}, status=status.HTTP_200_OK)

@@ -20,6 +20,7 @@ from apps.orders.tasks import update_transaction_status
 from apps.services.coingate import CoinGateService
 from apps.services.plisio import PlisioService
 from apps.services.transaction import TransactionService
+from apps.utils.notification import send_notification
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +58,9 @@ class OrderViewSet(
             self.perform_create(serializer)
             order = serializer.instance
             transaction = Transaction.objects.select_related("order").get(order=order)
+            send_notification(
+                user=order.user, message=f"Order is Created Successfully and Waiting Payment, ID: {str(order.id)}"
+            )
             return Response(
                 {
                     "order_id": str(order.id),

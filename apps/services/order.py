@@ -10,6 +10,7 @@ from apps.orders.models import Order, OrderStatus
 from apps.rdp.models import Rdp
 from apps.shells.models import Shell
 from apps.smtp.models import SMTP
+from apps.utils.notification import send_notification
 from apps.webmails.models import WebMail
 
 logger = logging.getLogger(__name__)
@@ -65,7 +66,7 @@ class OrderServices:
         for item in items_to_mark:
             if item:
                 item.mark_as_sold()
-
+        send_notification(user=order.user, message=f"Order is Payed Successfully, ID: {str(order.id)}")
         logger.info(f"Marked items as sold for order {order.id}")
 
     @staticmethod

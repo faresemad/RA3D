@@ -46,7 +46,7 @@ services:
     volumes:
       - ra3d_redis_data:/data
     command: redis-server --save 900 1 --save 300 10 --save 60 10000 --appendonly yes
-    restart: unless-stopped
+    restart: always
 
   celeryworker:
     <<: *django
